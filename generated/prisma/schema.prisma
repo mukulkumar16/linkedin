@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum ConnectionStatus {
+  PENDING
+  ACCEPTED
+}
+
+model User {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  email     String    @unique
+  password  String
+  createdAt DateTime? @default(now())
+
+  profile Profile?
+
+  posts    Post[]
+  comments Comment[]
+  likes    Like[]
+
+  sentConnections     Connection[] @relation("SentConnections")
+  receivedConnections Connection[] @relation("ReceivedConnections")
+}
+
+model Profile {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  bio       String?
+  location  String?
+  image     String?
+  cover_img String?
+  headline  String?
+
+  userId String @unique @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  education  Education[]
+  experience Experience[]
+}
+
+model Education {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  institute String
+  degree    String
+  year      String
+
+  profileId String  @db.ObjectId
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime? @default(now())
+}
+
+model Experience {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  company  String
+  role     String
+  duration String
+
+  profileId String  @db.ObjectId
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime? @default(now())
+}
+
+model Post {
+  id      String  @id @default(auto()) @map("_id") @db.ObjectId
+  caption String
+  image   String?
+  userId  String  @db.ObjectId
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  comments Comment[]
+  likes    Like[]
+
+  createdAt DateTime? @default(now())
+}
+
+model Comment {
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  content String
+
+  postId String @db.ObjectId
+  userId String @db.ObjectId
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime? @default(now())
+}
+
+model Like {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  postId String @db.ObjectId
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+}
+
+model Connection {
+  id         String           @id @default(auto()) @map("_id") @db.ObjectId
+  senderId   String           @db.ObjectId
+  receiverId String           @db.ObjectId
+  status     ConnectionStatus @default(PENDING)
+
+  sender   User @relation("SentConnections", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("ReceivedConnections", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime? @default(now())
+
+  @@unique([senderId, receiverId])
+}

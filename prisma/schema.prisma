@@ -1,0 +1,251 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+
+model User {
+  id        String   @id @default(uuid())
+  clerkId   String   @unique      
+  name      String
+  email     String   @unique
+  password  String?               
+  conversations Conversation[] @relation("UserConversations")
+  createdAt DateTime @default(now())
+
+  profile   Profile?
+
+  posts     Post[]
+  comments  Comment[]
+  likes     Like[]
+  jobs         Job[]
+  applications JobApplication[]
+  notifications        Notification[] @relation("UserNotifications")
+  sentNotifications    Notification[] @relation("SenderNotifications")
+
+  sentConnections     Connection[] @relation("SentConnections")
+  receivedConnections Connection[] @relation("ReceivedConnections")
+}
+
+
+model JobApplication {
+  id        String   @id @default(uuid())
+
+  
+  jobId     String
+  job       Job      @relation(fields: [jobId], references: [id])
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  status    ApplicationStatus @default(APPLIED)
+
+  createdAt DateTime @default(now())
+
+  @@unique([jobId, userId]) 
+}
+
+
+
+model Job {
+  id            String   @id @default(uuid())
+
+  title         String
+  company       String
+  location      String
+  type          JobType
+  workplace     WorkplaceType
+  description   String
+
+  // Salary
+  salaryMin     Int?
+  salaryMax     Int?
+
+
+
+  skills        String[]
+  isOpen        Boolean  @default(true)
+
+  // Relations
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+
+  applications  JobApplication[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+}
+
+enum WorkplaceType {
+  ONSITE
+  HYBRID
+  REMOTE
+}
+
+enum ApplicationStatus {
+  APPLIED
+  REVIEWING
+  SHORTLISTED
+  REJECTED
+  HIRED
+}
+
+
+
+model Conversation {
+  id        String   @id @default(uuid())
+  members   User[]   @relation("UserConversations")
+  messages  Message[]
+  createdAt DateTime @default(now())
+}
+
+model Message {
+  id             String   @id @default(uuid())
+  text           String
+  senderId       String
+  conversationId String
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id])
+}
+
+
+
+
+
+
+
+model Profile {
+  id        String   @id @default(uuid())
+  bio       String?
+  location  String?
+  image     String?
+  coverImg  String?
+  headline  String?
+
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  education  Education[]
+  experience Experience[]
+}
+
+model Education {
+  id         String   @id @default(uuid())
+  institute  String
+  degree     String
+  year       String
+
+  profileId  String
+  profile    Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime @default(now())
+}
+
+model Experience {
+  id         String   @id @default(uuid())
+  company    String
+  role       String
+  duration   String
+
+  profileId  String
+  profile    Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime @default(now())
+}
+
+model Post {
+  id        String   @id @default(uuid())
+  caption   String
+  image     String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  comments  Comment[]
+  likes     Like[]
+
+  createdAt DateTime @default(now())
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+
+  postId    String
+  userId    String
+
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  userId    String
+  postId    String
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+}
+
+model Connection {
+  id          String   @id @default(uuid())
+  senderId    String
+  receiverId  String
+  status      ConnectionStatus
+  createdAt   DateTime @default(now())
+
+  sender      User     @relation("SentConnections", fields: [senderId], references: [id])
+  receiver    User     @relation("ReceivedConnections", fields: [receiverId], references: [id])
+
+  @@unique([senderId, receiverId])
+}
+
+enum ConnectionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  senderId  String?
+  type      NotificationType
+  message   String
+  entityId  String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user   User  @relation("UserNotifications", fields: [userId], references: [id])
+  sender User? @relation("SenderNotifications", fields: [senderId], references: [id])
+
+
+}
+
+enum NotificationType {
+  CONNECTION_REQUEST
+  CONNECTION_ACCEPTED
+  POST_LIKE
+  POST_COMMENT
+  MESSAGE
+}
+
+
