@@ -3,15 +3,17 @@ import { currentUser } from "@clerk/nextjs/server";
 import { NextRequest } from "next/server";
 
 interface RouteContext {
-  params: {
+  params: Promise<{
     userId: string;
-  };
+  }>;
 }
 
 export async function GET(
   _request: NextRequest,
   { params }: RouteContext
 ): Promise<Response> {
+  const { userId } = await params; // ✅ REQUIRED in Next 15
+
   const me = await currentUser();
   if (!me) return new Response("Unauthorized", { status: 401 });
 
@@ -24,8 +26,8 @@ export async function GET(
   const connection = await prisma.connection.findFirst({
     where: {
       OR: [
-        { senderId: meInDb.id, receiverId: params.userId },
-        { senderId: params.userId, receiverId: meInDb.id },
+        { senderId: meInDb.id, receiverId: userId },
+        { senderId: userId, receiverId: meInDb.id },
       ],
     },
   });
