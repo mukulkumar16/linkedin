@@ -17,7 +17,7 @@ type UserContextType = {
 
 const UserContext = createContext<UserContextType | null>(null);
 
-export function UserProvider({ children }: { children: React.ReactNode }) {
+export default function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserType | null>(null);
   const [loading, setLoading] = useState(true);
 
