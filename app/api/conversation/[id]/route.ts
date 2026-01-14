@@ -9,12 +9,13 @@ export async function GET(
   try {
     const me = await currentUser();
 
+     const { id } = context.params as { id: string };
     if (!me) {
       return NextResponse.json("Unauthorized", { status: 401 });
     }
 
     const conversation = await prisma.conversation.findUnique({
-      where: { id: context.params.id },
+      where: { id: id },
       include: {
         members: { include: { profile: true } },
         messages: {
