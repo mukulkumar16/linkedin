@@ -1,32 +1,28 @@
 import prisma from "@/helper/prisma";
 import { currentUser } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-interface RouteParams {
-  params: {
-    id: string;
-  };
+// Next.js 15 dynamic route context
+interface RouteContext {
+  params: { id: string }; // directly object, no Promise
 }
 
 export async function GET(
-  _: Request,
-  { params }: RouteParams
+  _request: NextRequest,
+  { params }: RouteContext
 ): Promise<NextResponse> {
   try {
     const me = await currentUser();
-    const {id} = await params;
 
     if (!me) {
       return NextResponse.json("Unauthorized", { status: 401 });
     }
 
     const conversation = await prisma.conversation.findUnique({
-      where: { id: id },
+      where: { id: params.id },
       include: {
         members: {
-          include: {
-            profile: true,
-          },
+          include: { profile: true },
         },
         messages: {
           orderBy: { createdAt: "asc" },
@@ -45,9 +41,7 @@ export async function GET(
     }
 
     // 🔐 Authorization check
-    const isMember = conversation.members.some(
-      (m) => m.clerkId === me.id
-    );
+    const isMember = conversation.members.some((m) => m.clerkId === me.id);
 
     if (!isMember) {
       return NextResponse.json("Unauthorized", { status: 403 });
