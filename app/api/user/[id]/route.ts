@@ -1,13 +1,19 @@
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/helper/prisma";
 import { currentUser } from "@clerk/nextjs/server";
 
+interface RouteContext {
+  params: Promise<{
+    id: string;
+  }>;
+}
 
 export async function GET(
- 
-  { params }: { params: Promise<{ id: string }> }
-) {
+  _request: NextRequest,
+   { params }: RouteContext
+ ): Promise<Response>
+ {
   const dbuser = await currentUser();
 
   if (!dbuser) {
