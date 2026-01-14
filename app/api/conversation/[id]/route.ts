@@ -14,13 +14,14 @@ export async function GET(
 ): Promise<NextResponse> {
   try {
     const me = await currentUser();
+    const {id} = await params;
 
     if (!me) {
       return NextResponse.json("Unauthorized", { status: 401 });
     }
 
     const conversation = await prisma.conversation.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         members: {
           include: {
