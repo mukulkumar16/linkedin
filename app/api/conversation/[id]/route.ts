@@ -2,14 +2,9 @@ import prisma from "@/helper/prisma";
 import { currentUser } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
-// Next.js 15 dynamic route context
-interface RouteContext {
-  params: { id: string }; // directly object, no Promise
-}
-
 export async function GET(
   _request: NextRequest,
-  { params }: RouteContext
+  context: { params: { id: string } } // ✅ context.params is an object, not a Promise
 ): Promise<NextResponse> {
   try {
     const me = await currentUser();
@@ -19,19 +14,12 @@ export async function GET(
     }
 
     const conversation = await prisma.conversation.findUnique({
-      where: { id: params.id },
+      where: { id: context.params.id },
       include: {
-        members: {
-          include: { profile: true },
-        },
+        members: { include: { profile: true } },
         messages: {
           orderBy: { createdAt: "asc" },
-          select: {
-            id: true,
-            text: true,
-            senderId: true,
-            createdAt: true,
-          },
+          select: { id: true, text: true, senderId: true, createdAt: true },
         },
       },
     });
