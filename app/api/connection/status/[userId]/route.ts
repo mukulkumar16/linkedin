@@ -1,11 +1,17 @@
-
 import prisma from "@/helper/prisma";
 import { currentUser } from "@clerk/nextjs/server";
+import { NextRequest } from "next/server";
+
+interface RouteContext {
+  params: {
+    userId: string;
+  };
+}
 
 export async function GET(
-
-  { params }: { params: { userId: string } }
-) {
+  _request: NextRequest,
+  { params }: RouteContext
+): Promise<Response> {
   const me = await currentUser();
   if (!me) return new Response("Unauthorized", { status: 401 });
 
@@ -24,7 +30,9 @@ export async function GET(
     },
   });
 
-  if (!connection) return Response.json(null);
+  if (!connection) {
+    return Response.json(null);
+  }
 
   return Response.json({
     ...connection,

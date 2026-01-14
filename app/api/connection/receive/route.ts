@@ -1,8 +1,9 @@
 
 import prisma from "@/helper/prisma";
 import { currentUser } from "@clerk/nextjs/server";
+import { NextRequest } from "next/server";
 
-export async function GET() {
+export async function GET( _request: NextRequest) {
   const me = await currentUser();
   if (!me) return new Response("Unauthorized", { status: 401 });
 
