@@ -1,24 +1,29 @@
 // app/api/addJob/applied/route.ts
-import { currentUser } from "@clerk/nextjs/server";
+export const dynamic = "force-dynamic";
+
+import { auth } from "@clerk/nextjs/server";
 import prisma from "@/helper/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
-  // Get current user
-  const user = await currentUser();
-  if (!user) return NextResponse.json({ applied: false });
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ applied: false });
+  }
 
-  // Find user in DB
   const dbUser = await prisma.user.findUnique({
-    where: { clerkId: user.id },
+    where: { clerkId: userId },
   });
-  if (!dbUser) return NextResponse.json({ applied: false });
 
-  // Get jobId from query
+  if (!dbUser) {
+    return NextResponse.json({ applied: false });
+  }
+
   const jobId = req.nextUrl.searchParams.get("jobId");
-  if (!jobId) return NextResponse.json({ applied: false });
+  if (!jobId) {
+    return NextResponse.json({ applied: false });
+  }
 
-  // Check if applied
   const applied = await prisma.jobApplication.findUnique({
     where: {
       jobId_userId: {
