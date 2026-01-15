@@ -3,11 +3,11 @@ export const dynamic = "force-dynamic";
 
 import { auth } from "@clerk/nextjs/server";
 import prisma from "@/helper/prisma";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: { params: { id: string } }
 ) {
   try {
     const { userId } = await auth();
@@ -18,7 +18,7 @@ export async function GET(
       );
     }
 
-    const { id } = params;
+    const { id } = context.params;
 
     const posts = await prisma.post.findMany({
       where: { userId: id },
