@@ -1,8 +1,8 @@
-//@ts-nocheck
+
 import { ClerkProvider } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { UserProvider } from "./context/page";
+import { UserProvider } from "@/app/context/page";
 import { auth } from "@clerk/nextjs/server";
 import SocketProvider from "./(group)/component/socketProvider";
 
@@ -16,13 +16,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
 
-  const { userId } = auth();
+  const { userId  }  = await auth();
   return (
     <ClerkProvider>
       <html lang="en">

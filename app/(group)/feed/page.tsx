@@ -90,7 +90,7 @@ export default function Page() {
           </div>
 
           {/* POSTS */}
-          {posts.map((post) => (
+          {posts?.map((post) => (
             <PostComp key={post.id} post={post} />
           ))}
         </main>
