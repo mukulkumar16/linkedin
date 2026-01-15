@@ -1,7 +1,7 @@
-
+export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import prisma from "@/helper/prisma";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 
 export async function POST(req: Request) {
   try {
@@ -15,13 +15,13 @@ export async function POST(req: Request) {
     }
 
     // 🔹 Get Clerk user (optional for public view)
-    const clerkUser = await currentUser();
+    const {userId} = await auth();
 
     let dbUserId: string | null = null;
 
-    if (clerkUser) {
+    if (userId) {
       const dbUser = await prisma.user.findUnique({
-        where: { clerkId: clerkUser.id },
+        where: { clerkId: userId },
       });
 
       if (dbUser) {

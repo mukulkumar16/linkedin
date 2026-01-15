@@ -1,7 +1,7 @@
-
+export const dynamic = "force-dynamic";
 import prisma from "@/helper/prisma";
 import { NextResponse } from "next/server";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 
 export async function GET(
   _: Request,
@@ -9,11 +9,11 @@ export async function GET(
 ) {
   const { conversationId } = await params;
 
-  const me = await currentUser();
-  if (!me) return NextResponse.json([]);
+  const {userId} = await auth();
+  if (!userId) return NextResponse.json([]);
 
   const meInDb = await prisma.user.findUnique({
-    where: { clerkId: me.id },
+    where: { clerkId: userId },
   });
 
   if (!meInDb) return NextResponse.json([]);

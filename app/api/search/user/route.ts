@@ -1,12 +1,13 @@
+export const dynamic = "force-dynamic";
 import prisma from "@/helper/prisma";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
   try {
-    const user = await currentUser();
+    const {userId} = await auth();
 
-    if (!user) {
+    if (!userId) {
       return NextResponse.json(
         { success: false, message: "User not logged in" },
         { status: 401 }
@@ -32,7 +33,7 @@ export async function GET(req: Request) {
           },
           {
             clerkId: {
-              not: user.id,
+              not: userId,
             },
           },
         ],

@@ -1,13 +1,13 @@
-
+export const dynamic = "force-dynamic";
 import prisma from "@/helper/prisma";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 
 export async function GET() {
-  const me = await currentUser();
-  if (!me) return new Response("Unauthorized", { status: 401 });
+  const {userId} = await auth();
+  if (!userId) return new Response("Unauthorized", { status: 401 });
 
   const dbUser = await prisma.user.findUnique({
-    where: { clerkId: me.id },
+    where: { clerkId: userId },
   });
 
   const notifications = await prisma.notification.findMany({

@@ -5,7 +5,7 @@ import prisma from "@/helper/prisma";
 import { NextResponse } from "next/server";
 
 export async function GET(
-    req: Request,
+    _request: Request,
       { params }: { params: Promise<{ jobId : string }> }
 ) {
     try {

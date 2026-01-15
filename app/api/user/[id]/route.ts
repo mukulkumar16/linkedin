@@ -1,7 +1,7 @@
-
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/helper/prisma";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 
 interface RouteContext {
   params: Promise<{
@@ -14,9 +14,9 @@ export async function GET(
    { params }: RouteContext
  ): Promise<Response>
  {
-  const dbuser = await currentUser();
+  const {userId} = await auth();
 
-  if (!dbuser) {
+  if (!userId) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
