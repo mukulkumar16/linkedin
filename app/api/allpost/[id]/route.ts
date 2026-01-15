@@ -1,26 +1,27 @@
-import { currentUser } from "@clerk/nextjs/server";
+// app/api/allpost/[id]/route.ts
+export const dynamic = "force-dynamic";
+
+import { auth } from "@clerk/nextjs/server";
 import prisma from "@/helper/prisma";
 import { NextResponse } from "next/server";
 
 export async function GET(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const user = await currentUser();
-    const { id } = await params;
-
-    console.log("id from post api:", id);
-
-    if (!user) {
+    const { userId } = await auth();
+    if (!userId) {
       return NextResponse.json(
         { success: false, message: "user not logged in" },
         { status: 401 }
       );
     }
 
+    const { id } = params;
+
     const posts = await prisma.post.findMany({
-      where: { userId : id},
+      where: { userId: id },
       include: {
         user: { include: { profile: true } },
       },
