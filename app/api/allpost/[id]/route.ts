@@ -7,10 +7,11 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   req: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth();
+
     if (!userId) {
       return NextResponse.json(
         { success: false, message: "user not logged in" },
@@ -18,12 +19,16 @@ export async function GET(
       );
     }
 
-    const { id } = context.params;
+    const { id } = await context.params;
 
     const posts = await prisma.post.findMany({
       where: { userId: id },
       include: {
-        user: { include: { profile: true } },
+        user: {
+          include: {
+            profile: true,
+          },
+        },
       },
     });
 
