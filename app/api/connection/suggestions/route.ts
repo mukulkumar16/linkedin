@@ -1,12 +1,13 @@
+export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import prisma from "@/helper/prisma";
 
 export async function GET(): Promise<NextResponse> {
   try {
-    const me = await currentUser();
+    const {userId} = await auth();
 
-    if (!me) {
+    if (!userId) {
       return NextResponse.json([], { status: 401 });
     }
 
@@ -14,7 +15,7 @@ export async function GET(): Promise<NextResponse> {
       where: {
         // 1️⃣ Never suggest myself
         id: {
-          not: me.id,
+          not: userId,
         },
 
         AND: [
@@ -22,7 +23,7 @@ export async function GET(): Promise<NextResponse> {
           {
             sentConnections: {
               none: {
-                receiverId: me.id,
+                receiverId: userId,
               },
             },
           },
@@ -31,7 +32,7 @@ export async function GET(): Promise<NextResponse> {
           {
             receivedConnections: {
               none: {
-                senderId: me.id,
+                senderId: userId,
               },
             },
           },

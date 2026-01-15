@@ -1,14 +1,15 @@
+export const dynamic = "force-dynamic";
 import prisma from "@/helper/prisma";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 
 export async function POST(req: Request) {
-  const me = await currentUser();
-  if (!me) return new Response("Unauthorized", { status: 401 });
+  const {userId} = await auth();
+  if (!userId) return new Response("Unauthorized", { status: 401 });
 
   const { connectionId, action } = await req.json(); // ACCEPT | REJECT
 
   const meInDb = await prisma.user.findUnique({
-    where: { clerkId: me.id },
+    where: { clerkId: userId },
   });
 
   if (!meInDb) return new Response("User not found", { status: 404 });

@@ -1,13 +1,13 @@
-
+export const dynamic = "force-dynamic";
 import prisma from "@/helper/prisma";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { createNotification } from "@/helper/createNotification"; // ✅ import
 
 export async function POST(req : NextRequest) {
   try {
-    const me = await currentUser();
-    if (!me) {
+    const {userId} = await auth();
+    if (!userId) {
       return NextResponse.json("Unauthorized", { status: 401 });
     }
 
@@ -21,7 +21,7 @@ export async function POST(req : NextRequest) {
     }
 
     const meInDb = await prisma.user.findUnique({
-      where: { clerkId: me.id },
+      where: { clerkId: userId },
     });
 
     if (!meInDb) {

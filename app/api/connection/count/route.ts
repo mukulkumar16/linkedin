@@ -1,16 +1,17 @@
+export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import prisma from "@/helper/prisma";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 
 export async function GET() {
-  const user = await currentUser();
-  if (!user) {
+  const {userId} = await auth();
+  if (!userId) {
     return NextResponse.json({ count: 0 });
   }
 
   const count = await prisma.connection.count({
     where: {
-      receiverId: user.id,
+      receiverId: userId,
       status: "PENDING",
     },
   });

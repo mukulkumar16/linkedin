@@ -1,6 +1,6 @@
-
+export const dynamic = "force-dynamic";
 import prisma from "@/helper/prisma";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -14,10 +14,10 @@ export async function GET(
  _request: NextRequest,
   { params }: RouteContext
 ): Promise<Response> {
-  const me = await currentUser();
+  const {userId} = await auth();
   const { id } = await params;
 
-  if (!me) {
+  if (!userId) {
     return NextResponse.json("Unauthorized", { status: 401 });
   }
 
@@ -46,7 +46,7 @@ export async function GET(
   }
 
   // 🔐 Authorization check
-  const isMember = conversation.members.some((m) => m.clerkId === me.id);
+  const isMember = conversation.members.some((m) => m.clerkId === userId);
 
   if (!isMember) {
     return NextResponse.json("Unauthorized", { status: 403 });

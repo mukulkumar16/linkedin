@@ -1,22 +1,23 @@
+export const dynamic = "force-dynamic";
 import prisma from "@/helper/prisma";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 export async function GET() {
 
-    const user = await currentUser();
-    if(!user){
+    const {userId} = await auth();
+    if(!userId){
         return NextResponse.json({
             success : false,
             message : "user not found"
         })
 
     }
-    console.log("user form connection ", user);
+    console.log("user form connection ", userId);
 
     const dbuser = await prisma.user.findUnique({
         where : {
-            clerkId : user.id
+            clerkId : userId
         }
     })
 
