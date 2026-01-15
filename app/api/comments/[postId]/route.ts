@@ -1,22 +1,16 @@
-import { NextResponse } from "next/server";
+// app/api/comments/[postId]/route.ts
+export const dynamic = "force-dynamic";
+
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/helper/prisma";
 
 export async function GET(
-  req: Request,
-  context: { params: Promise<{ postId?: string }> }
+  req: NextRequest,
+  context: { params: Promise<{ postId: string }> }
 ) {
   try {
-    // ✅ MUST await params in Next.js 15/16
+    // MUST await params in Next.js 16
     const { postId } = await context.params;
-
-    console.log("post id from api route", postId);
-
-    if (!postId) {
-      return NextResponse.json(
-        { message: "Post ID is required", comments: [] },
-        { status: 400 }
-      );
-    }
 
     const comments = await prisma.comment.findMany({
       where: { postId },
