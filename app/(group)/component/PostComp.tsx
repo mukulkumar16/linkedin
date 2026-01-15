@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from "react";
 import { ThumbsUp, MessageSquareMore } from "lucide-react";
 import Image from "next/image";
-import { useUser } from "@/app/context/page";
+import { useUser } from "@/app/context/userContext";
 import Link from "next/link";
 
 /* ---------------- TYPES ---------------- */
@@ -190,7 +190,7 @@ export default function PostComp({ post }: { post: Post }) {
       {/* ACTIONS */}
       <hr className="mt-4" />
       <div className="flex gap-6 mt-4 text-sm">
-      
+
         <button onClick={toggleLike} className="flex gap-2 items-center">
           <ThumbsUp
             size={18}

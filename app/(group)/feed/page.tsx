@@ -7,7 +7,7 @@ import SideCard from "../component/SideCard";
 import RightSidebar from "../component/RightSideBar";
 import PostComp from "../component/PostComp";
 import CreatePostModal from "@/app/(group)/component/CreatePost";
-import { useUser } from "@/app/context/page";
+import { useUser } from "@/app/context/userContext";
 import Footer from "../component/Footer";
 
 /* ---------- TYPES ---------- */
@@ -33,7 +33,7 @@ type UserContext = data | null;
 export default function Page() {
   const [openPostModal, setOpenPostModal] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
- const { user }: { user: UserContext } = useUser();
+  const { user }: { user: UserContext } = useUser();
 
   useEffect(() => {
     fetchPosts();

@@ -4,7 +4,7 @@
 import Image from "next/image";
 import { X, ImageIcon } from "lucide-react";
 import { useRef, useState } from "react";
-import { useUser } from "@/app/context/page";
+import { useUser } from "@/app/context/userContext";
 
 
 
@@ -29,7 +29,7 @@ export default function CreatePostModal({
   onClose: () => void;
 }) {
 
- const { user }: { user: UserContext } = useUser();
+  const { user }: { user: UserContext } = useUser();
 
   const [caption, setCaption] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -177,9 +177,9 @@ export default function CreatePostModal({
               <ImageIcon />
             </button>
 
-            
 
-            
+
+
 
             <input
               ref={fileRef}

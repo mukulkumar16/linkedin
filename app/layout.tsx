@@ -2,7 +2,7 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { UserProvider } from "@/app/context/page";
+import { UserProvider } from "@/app/context/userContext";
 import { auth } from "@clerk/nextjs/server";
 import SocketProvider from "./(group)/component/socketProvider";
 
@@ -22,7 +22,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
 
-  const { userId  }  = await auth();
+  const { userId } = await auth();
   return (
     <ClerkProvider>
       <html lang="en">

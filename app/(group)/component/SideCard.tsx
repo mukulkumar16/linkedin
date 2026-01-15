@@ -2,7 +2,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useUser } from '@/app/context/page';
+import { useUser } from '@/app/context/userContext';
 import Link from 'next/link';
 import { MapPin } from 'lucide-react';
 
@@ -19,7 +19,7 @@ interface data {
 type UserContext = data | null;
 
 export default function SideCard() {
-    const { user }: { user: UserContext } = useUser();
+  const { user }: { user: UserContext } = useUser();
 
   return (
     <div

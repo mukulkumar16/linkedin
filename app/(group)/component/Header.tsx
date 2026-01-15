@@ -3,7 +3,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useUser } from "@/app/context/page";
+import { useUser } from "@/app/context/userContext";
 import { useEffect, useState } from "react";
 import { useClerk } from "@clerk/nextjs";
 import { useUnread } from '@/app/(group)/context/UnreadCount';

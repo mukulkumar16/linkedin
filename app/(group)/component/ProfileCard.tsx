@@ -1,7 +1,7 @@
 
 'use client';
 import Image from 'next/image';
-import { useUser } from '@/app/context/page';
+import { useUser } from '@/app/context/userContext';
 import { MapPin, Briefcase } from 'lucide-react';
 
 interface UserProfile {
@@ -12,13 +12,13 @@ interface data {
   name?: string;
   profile?: UserProfile;
   data?: any;
-  
+
 }
 
 type UserContext = data | null;
 
 export default function ProfileCard() {
-const { user , loading }: { user: UserContext; loading: boolean } = useUser();
+  const { user, loading }: { user: UserContext; loading: boolean } = useUser();
 
   if (loading) {
     return (
@@ -37,7 +37,7 @@ const { user , loading }: { user: UserContext; loading: boolean } = useUser();
 
   return (
     <div className="w-70 rounded-xl bg-white shadow hover:shadow-lg transition overflow-hidden">
-      
+
       {/* Cover Image */}
       <div className="relative h-16 bg-linear-to-r from-blue-600 to-blue-400" />
 
