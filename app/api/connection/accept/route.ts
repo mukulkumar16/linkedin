@@ -1,23 +1,34 @@
-import { NextResponse , NextRequest } from "next/server";
-import prismaClient from "@/helper/prisma";
-import { currentUser } from "@clerk/nextjs/server";
+// app/api/connection/accept/route.ts
+export const dynamic = "force-dynamic";
 
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import prisma from "@/helper/prisma";
 
 export async function POST(req: NextRequest) {
-   
-    const { connectionId } = await req.json();
-    const user = await currentUser();
-    if(!user ) {
-      return NextResponse.json({
-        success : false,
-        message : "User not logged in"
-      })
-    }
-  const updated = await prismaClient.connection.update({
-    where: { id: connectionId },
-    data: { status: "ACCEPTED" },
-  });
-  
+  try {
+    const { userId } = await auth();
 
-  return NextResponse.json(updated);
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, message: "User not logged in" },
+        { status: 401 }
+      );
+    }
+
+    const { connectionId } = await req.json();
+
+    const updated = await prisma.connection.update({
+      where: { id: connectionId },
+      data: { status: "ACCEPTED" },
+    });
+
+    return NextResponse.json(updated);
+  } catch (error) {
+    console.error("ACCEPT CONNECTION ERROR 👉", error);
+    return NextResponse.json(
+      { success: false, message: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
 }
