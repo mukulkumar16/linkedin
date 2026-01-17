@@ -1,5 +1,5 @@
+import prisma from "@/helper/prisma";
 
-import { prisma } from "@/helper/prisma"
 
 export async function POST(req: Request) {
   const { text, senderId, conversationId } = await req.json();
