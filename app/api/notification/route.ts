@@ -1,6 +1,6 @@
-export const dynamic = "force-dynamic";
 import prisma from "@/helper/prisma";
 import { auth } from "@clerk/nextjs/server";
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   const {userId} = await auth();

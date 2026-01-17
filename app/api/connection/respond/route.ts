@@ -1,7 +1,6 @@
-export const dynamic = "force-dynamic";
 import prisma from "@/helper/prisma";
 import { auth } from "@clerk/nextjs/server";
-
+export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   const {userId} = await auth();
   if (!userId) return new Response("Unauthorized", { status: 401 });

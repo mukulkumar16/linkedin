@@ -1,7 +1,7 @@
-export const dynamic = "force-dynamic";
 import prisma from "@/helper/prisma";
 import { currentUser } from "@clerk/nextjs/server";
 import { NextRequest } from "next/server";
+export const dynamic = "force-dynamic";
 
 interface RouteContext {
   params: Promise<{

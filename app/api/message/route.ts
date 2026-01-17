@@ -1,5 +1,5 @@
-export const dynamic = "force-dynamic";
 import prisma from "@/helper/prisma";
+export const dynamic = "force-dynamic";
 
 
 export async function POST(req: Request) {

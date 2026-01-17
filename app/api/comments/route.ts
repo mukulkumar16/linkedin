@@ -1,8 +1,8 @@
-export const dynamic = "force-dynamic";
 import { NextResponse, NextRequest } from "next/server";
 import prisma from "@/helper/prisma";
 import { currentUser } from "@clerk/nextjs/server";
 import { createNotification } from "@/helper/createNotification";
+export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
