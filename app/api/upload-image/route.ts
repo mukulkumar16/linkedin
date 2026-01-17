@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import cloudinary from "@/helper/cloudinary";
-
+export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   try {
     const { image } = await req.json();
