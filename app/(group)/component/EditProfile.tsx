@@ -42,10 +42,10 @@ export default function EditProfileModal({
     experience?: Experience[];
   };
 }) {
-  const [name, setName] = useState("");
-  const [headline, setHeadline] = useState("");
-  const [location, setLocation] = useState("");
-  const [about, setAbout] = useState("");
+  const [name, setName] = useState<string>("");
+  const [headline, setHeadline] = useState<string>("");
+  const [location, setLocation] = useState<string>("");
+  const [about, setAbout] = useState<string>("");
 
   const [profilePreview, setProfilePreview] = useState<string | null>(initialData?.image || null);
   const [coverPreview, setCoverPreview] = useState<string | null>(initialData?.cover_img || null);
@@ -61,7 +61,7 @@ export default function EditProfileModal({
 
   const handleImageSelect = (
     e: React.ChangeEvent<HTMLInputElement>,
-    type: "profile" | "cover"
+    type: string
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -77,9 +77,6 @@ export default function EditProfileModal({
     reader.readAsDataURL(file);
   };
 
-  /* ----------------------------------
-     Prefill data when modal opens
-  ----------------------------------- */
   useEffect(() => {
     if (!initialData) return;
 
@@ -121,9 +118,6 @@ const uploadedImg = async (base64: string | null) => {
 };
 
 
-  /* ----------------------------------
-     SAVE HANDLER (FormData)
-  ----------------------------------- */
  const handleSave = async () => {
   let profileImageUrl = null;
   let coverImageUrl = null;

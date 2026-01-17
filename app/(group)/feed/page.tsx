@@ -8,7 +8,7 @@ import PostComp from "../component/PostComp";
 import CreatePostModal from "@/app/(group)/component/CreatePost";
 import { useUser } from "@/app/context/userContext";
 import Footer from "../component/Footer";
-import type { User } from "@/app/type/user";
+
 
 /* ---------- TYPES ---------- */
 interface Post {
@@ -17,9 +17,9 @@ interface Post {
 }
 
 export default function Page() {
-  const [openPostModal, setOpenPostModal] = useState(false);
+  const [openPostModal, setOpenPostModal] = useState<boolean>(false);
   const [posts, setPosts] = useState<Post[]>([]);
-  const { user } = useUser(); // ✅ correct typing comes from context
+  const { user } = useUser(); 
 
   useEffect(() => {
     fetchPosts();

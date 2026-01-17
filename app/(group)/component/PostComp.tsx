@@ -33,18 +33,19 @@ interface CommentType {
   user: User;
 }
 
+
 /* ---------------- COMPONENT ---------------- */
 export default function PostComp({ post }: { post: Post }) {
   const postId = post.id;
-  const { user } = useUser(); // ✅ properly typed
+  const { user } = useUser(); 
 
   const [likeState, setLikeState] = useState({
     likesCount: 0,
     likedByUser: false,
   });
 
-  const [showComments, setShowComments] = useState(false);
-  const [newComment, setNewComment] = useState("");
+  const [showComments, setShowComments] = useState<boolean>(false);
+  const [newComment, setNewComment] = useState<string>("");
   const [comments, setComments] = useState<CommentType[]>([]);
 
   /* ---------------- LOAD COMMENTS ---------------- */
@@ -181,7 +182,7 @@ export default function PostComp({ post }: { post: Post }) {
       </Link>
 
       {/* CAPTION */}
-      <div className="mt-3 text-sm sm:text-base break-words">
+      <div className="mt-3 text-sm sm:text-base wrap-break-words">
         {post.caption}
       </div>
 
@@ -278,7 +279,7 @@ const Comment = ({ comment }: { comment: CommentType }) => {
       <div className="bg-gray-100 rounded-lg px-4 py-2 w-full">
         <p className="text-sm font-semibold">{comment.user?.name}</p>
         <p className="text-xs text-gray-500">{comment.user?.profile?.headline}</p>
-        <p className="text-sm mt-1 break-words whitespace-pre-wrap">{comment.content}</p>
+        <p className="text-sm mt-1 wrap-break-words whitespace-pre-wrap">{comment.content}</p>
       </div>
     </div>
   );

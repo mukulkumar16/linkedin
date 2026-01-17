@@ -6,9 +6,6 @@ import { X, ImageIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import { useUser } from "@/app/context/userContext";
 
-
-
-
 export default function CreatePostModal({
   onClose,
 }: {
@@ -17,7 +14,7 @@ export default function CreatePostModal({
 
   const { user }= useUser();
 
-  const [caption, setCaption] = useState("");
+  const [caption, setCaption] = useState<string>("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -49,7 +46,7 @@ export default function CreatePostModal({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            image: imagePreview, // base64 string
+            image: imagePreview, 
           }),
         });
 

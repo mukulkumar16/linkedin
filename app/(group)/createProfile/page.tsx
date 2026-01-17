@@ -8,32 +8,52 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "next/navigation";
 
+/* ---------------- TYPES ---------------- */
+
+interface Education {
+  institute: string;
+  degree: string;
+  year: string;
+}
+
+interface Experience {
+  company: string;
+  role: string;
+  duration: string;
+}
+
+interface UploadResponse {
+  imageUrl: string;
+}
+
+/* ---------------- COMPONENT ---------------- */
+
 export default function CreateProfilePage() {
-  const [name, setName] = useState("");
-  const [headline, setHeadline] = useState("");
-  const [location, setLocation] = useState("");
-  const [about, setAbout] = useState("");
   const router = useRouter();
 
-  const [education, setEducation] = useState([
+  const [name, setName] = useState<string>("");
+  const [headline, setHeadline] = useState<string>("");
+  const [location, setLocation] = useState<string>("");
+  const [about, setAbout] = useState<string>("");
+
+  const [education, setEducation] = useState<Education[]>([
     { institute: "", degree: "", year: "" },
   ]);
 
-  const [experience, setExperience] = useState([
+  const [experience, setExperience] = useState<Experience[]>([
     { company: "", role: "", duration: "" },
   ]);
 
-  // ✅ BASE64 ONLY
+  // base64 images
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [coverImage, setCoverImage] = useState<string | null>(null);
 
-  /* -------------------------------
-     Convert file → base64
-  -------------------------------- */
+  /* ---------------- IMAGE SELECT ---------------- */
+
   const handleImageSelect = (
     e: React.ChangeEvent<HTMLInputElement>,
     type: "profile" | "cover"
-  ) => {
+  ): void => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -46,10 +66,11 @@ export default function CreateProfilePage() {
     reader.readAsDataURL(file);
   };
 
-  /* -------------------------------
-     Upload to Cloudinary
-  -------------------------------- */
-  const uploadImage = async (base64: string | null) => {
+  /* ---------------- UPLOAD IMAGE ---------------- */
+
+  const uploadImage = async (
+    base64: string | null
+  ): Promise<string | null> => {
     if (!base64) return null;
 
     const res = await fetch("/api/upload-image", {
@@ -58,16 +79,17 @@ export default function CreateProfilePage() {
       body: JSON.stringify({ image: base64 }),
     });
 
-    const data = await res.json();
-    if (!res.ok) throw new Error("Image upload failed");
+    if (!res.ok) {
+      throw new Error("Image upload failed");
+    }
 
-    return data.imageUrl; // Cloudinary URL
+    const data: UploadResponse = await res.json();
+    return data.imageUrl;
   };
 
-  /* -------------------------------
-     CREATE PROFILE
-  -------------------------------- */
-  const handleCreateProfile = async () => {
+  /* ---------------- CREATE PROFILE ---------------- */
+
+  const handleCreateProfile = async (): Promise<void> => {
     try {
       const profileUrl = await uploadImage(profileImage);
       const coverUrl = await uploadImage(coverImage);
@@ -88,21 +110,23 @@ export default function CreateProfilePage() {
         }),
       });
 
-      if (!res.ok){ throw new Error("Profile creation failed");}
-      else {
-        alert("Profile created successfully 🎉");
-        router.push('/profile');
-
+      if (!res.ok) {
+        throw new Error("Profile creation failed");
       }
-    } catch (err: any) {
+
+      alert("Profile created successfully 🎉");
+      router.push("/profile");
+    } catch (error) {
+      const err = error as Error;
       alert(err.message);
     }
   };
 
+  /* ---------------- UI ---------------- */
+
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center p-4">
       <Card className="w-full max-w-2xl rounded-2xl overflow-hidden">
-
         {/* COVER IMAGE */}
         <div className="relative h-40 bg-gray-200">
           {coverImage ? (
@@ -122,7 +146,6 @@ export default function CreateProfilePage() {
         </div>
 
         <CardContent className="pt-14 p-6 space-y-6">
-
           {/* PROFILE IMAGE */}
           <div className="relative w-24 h-24 -mt-20 ml-4 rounded-full border-4 border-white bg-gray-300 overflow-hidden">
             {profileImage ? (
@@ -148,31 +171,53 @@ export default function CreateProfilePage() {
 
           {/* FORM */}
           <div className="space-y-4">
-            <Input placeholder="Full name" value={name} onChange={(e) => setName(e.target.value)} />
-            <Input placeholder="Headline" value={headline} onChange={(e) => setHeadline(e.target.value)} />
-            <Input placeholder="Location" value={location} onChange={(e) => setLocation(e.target.value)} />
-            <Textarea placeholder="About" value={about} onChange={(e) => setAbout(e.target.value)} />
+            <Input
+              placeholder="Full name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+            <Input
+              placeholder="Headline"
+              value={headline}
+              onChange={(e) => setHeadline(e.target.value)}
+            />
+            <Input
+              placeholder="Location"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+            />
+            <Textarea
+              placeholder="About"
+              value={about}
+              onChange={(e) => setAbout(e.target.value)}
+            />
 
             {/* EDUCATION */}
             <div className="space-y-3">
               <h3 className="font-semibold">Education</h3>
               {education.map((edu, i) => (
                 <div key={i} className="border p-4 rounded-xl space-y-2">
-                  <Input placeholder="Institute" value={edu.institute}
+                  <Input
+                    placeholder="Institute"
+                    value={edu.institute}
                     onChange={(e) => {
                       const copy = [...education];
                       copy[i].institute = e.target.value;
                       setEducation(copy);
                     }}
                   />
-                  <Input placeholder="Degree" value={edu.degree}
+                  <Input
+                    placeholder="Degree"
+                    value={edu.degree}
                     onChange={(e) => {
                       const copy = [...education];
                       copy[i].degree = e.target.value;
                       setEducation(copy);
                     }}
                   />
-                  <Input placeholder="Year" value={edu.year}
+                  <Input
+                    placeholder="Year"
+                    value={edu.year}
                     onChange={(e) => {
                       const copy = [...education];
                       copy[i].year = e.target.value;
@@ -184,7 +229,10 @@ export default function CreateProfilePage() {
               <Button
                 variant="outline"
                 onClick={() =>
-                  setEducation([...education, { institute: "", degree: "", year: "" }])
+                  setEducation([
+                    ...education,
+                    { institute: "", degree: "", year: "" },
+                  ])
                 }
               >
                 + Add education
@@ -196,21 +244,27 @@ export default function CreateProfilePage() {
               <h3 className="font-semibold">Experience</h3>
               {experience.map((exp, i) => (
                 <div key={i} className="border p-4 rounded-xl space-y-2">
-                  <Input placeholder="Company" value={exp.company}
+                  <Input
+                    placeholder="Company"
+                    value={exp.company}
                     onChange={(e) => {
                       const copy = [...experience];
                       copy[i].company = e.target.value;
                       setExperience(copy);
                     }}
                   />
-                  <Input placeholder="Role" value={exp.role}
+                  <Input
+                    placeholder="Role"
+                    value={exp.role}
                     onChange={(e) => {
                       const copy = [...experience];
                       copy[i].role = e.target.value;
                       setExperience(copy);
                     }}
                   />
-                  <Input placeholder="Duration" value={exp.duration}
+                  <Input
+                    placeholder="Duration"
+                    value={exp.duration}
                     onChange={(e) => {
                       const copy = [...experience];
                       copy[i].duration = e.target.value;
@@ -222,7 +276,10 @@ export default function CreateProfilePage() {
               <Button
                 variant="outline"
                 onClick={() =>
-                  setExperience([...experience, { company: "", role: "", duration: "" }])
+                  setExperience([
+                    ...experience,
+                    { company: "", role: "", duration: "" },
+                  ])
                 }
               >
                 + Add experience
@@ -233,7 +290,6 @@ export default function CreateProfilePage() {
           <Button className="w-full" onClick={handleCreateProfile}>
             Create Profile
           </Button>
-
         </CardContent>
       </Card>
     </div>

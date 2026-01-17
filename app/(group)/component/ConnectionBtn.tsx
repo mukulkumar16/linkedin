@@ -1,12 +1,10 @@
-
 "use client";
-
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 interface Connection {
   id: string,
-  status? : "PENDING" | "ACCEPTED" | string;
+  status? : string;
   senderId? : string ;
 
 }
@@ -43,8 +41,7 @@ export default function ConnectionButton({ profileUserId  , loggedInUserId } : {
 
     router.refresh();
   };
-
-  // 🟢 NO CONNECTION
+  
   if (!connection) {
     return (
       <button
@@ -55,14 +52,13 @@ export default function ConnectionButton({ profileUserId  , loggedInUserId } : {
     );
   }
 
-  // 🟡 PENDING
   if (connection.status === "PENDING") {
-    // 🔑 IF I SENT IT
+
     if (connection?.senderId === loggedInUserId) {
       return <span className="text-gray-500">Pending</span>;
     }
 
-    // 🔑 IF I RECEIVED IT
+
     return (
       <div className="flex gap-2">
         <button
@@ -81,7 +77,7 @@ export default function ConnectionButton({ profileUserId  , loggedInUserId } : {
     );
   }
 
-  // 🟢 CONNECTED
+
   if (connection.status === "ACCEPTED") {
     return (
       <button

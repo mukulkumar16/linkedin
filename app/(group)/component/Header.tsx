@@ -1,12 +1,9 @@
-
 "use client";
-
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useClerk } from "@clerk/nextjs";
 import { useUnread } from '@/app/(group)/context/UnreadCount';
-
 import { useRouter } from "next/navigation";
 import {
     Home,
@@ -16,8 +13,6 @@ import {
     Search,
 } from "lucide-react";
 import NotificationBell from "./NotificationBell";
-
-
 
 interface data {
     name?: string;
@@ -32,15 +27,12 @@ interface data {
 
 
 const Header = () => {
-    const [isopen, setIsOpen] = useState(false);
+    const [isopen, setIsOpen] = useState<boolean>(false);
     const router = useRouter();
     const [userData, setUserData] = useState<data | null>(null);
     const [networkCount, setNetworkCount] = useState<number>(0);
     const { totalUnread } = useUnread();
-
-
-    const [query, setQuery] = useState("");
-    // const { user }: { user: UserContext } = useUser();
+    const [query, setQuery] = useState<string>("");
     const { signOut } = useClerk();
 
     useEffect(() => {

@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 
 export default function JobCard({ job }: { job: Job }) {
 
-  const [applied, setApplied] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [applied, setApplied] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const checkApplied = async () => {

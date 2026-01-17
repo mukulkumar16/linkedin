@@ -6,8 +6,7 @@ import Footer from "../component/Footer";
 
 /* ================= TYPES ================= */
 
-type JobType = "FULL_TIME" | "PART_TIME" | "CONTRACT" | "INTERNSHIP";
-type WorkplaceType = "REMOTE" | "ONSITE" | "HYBRID";
+
 
 interface UserData {
   id: string;
@@ -18,8 +17,8 @@ interface JobFormData {
   title: string;
   company: string;
   location: string;
-  type: JobType;
-  workplace: WorkplaceType;
+  type: string;
+  workplace: string;
   description: string;
   salaryMin?: number;
   salaryMax?: number;

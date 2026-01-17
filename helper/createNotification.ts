@@ -20,7 +20,7 @@ export async function createNotification({
   entityId,
   message,
 }: NotificationInput) {
-  return (prisma as any).notification.create({
+  return prisma.notification.create({
     data: {
       userId,
       senderId,

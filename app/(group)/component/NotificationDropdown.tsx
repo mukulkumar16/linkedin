@@ -1,33 +1,10 @@
 "use client";
 
+import React from "react";
 import { useRouter } from "next/navigation";
+import type { Notification } from "@/app/(group)/component/NotificationBell";
 
-/* ---------- TYPES ---------- */
-type NotificationType =
-  | "POST_LIKE"
-  | "POST_COMMENT"
-  | "CONNECTION_ACCEPTED";
-
-interface SenderProfile {
-  image?: string;
-}
-
-interface Sender {
-  id: string;
-  name: string;
-  profile?: SenderProfile;
-}
-
-interface Notification {
-  id: string;
-  isRead: boolean;
-  type: NotificationType;
-  message: string;
-  entityId?: string;
-  senderId?: string;
-  sender?: Sender;
-}
-
+/* ---------- PROPS ---------- */
 interface NotificationDropdownProps {
   notifications: Notification[];
   setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
@@ -46,26 +23,27 @@ export default function NotificationDropdown({
       body: JSON.stringify({ id: n.id }),
     });
 
-    // Remove notification from UI
+    // Optimistic UI update
     setNotifications((prev) => prev.filter((p) => p.id !== n.id));
 
-    if (n.type === "POST_LIKE" || n.type === "POST_COMMENT") {
-      if (n.entityId) {
-        router.push(`/post/${n.entityId}`);
-      }
-    } else if (n.type === "CONNECTION_ACCEPTED") {
-      if (n.senderId) {
-        router.push(`/profile/${n.senderId}`);
-      }
+    if (
+      (n.type === "POST_LIKE" || n.type === "POST_COMMENT") &&
+      n.entityId
+    ) {
+      router.push(`/post/${n.entityId}`);
+    }
+
+    if (n.type === "CONNECTION_ACCEPTED" && n.senderId) {
+      router.push(`/profile/${n.senderId}`);
     }
   }
 
   return (
     <div
       className="
-        absolute right-0 mt-2 
-        w-[80vw] max-w-md 
-        bg-white shadow-lg rounded-lg 
+        absolute right-0 mt-2
+        w-[80vw] max-w-md
+        bg-white shadow-lg rounded-lg
         overflow-hidden
       "
     >
@@ -74,20 +52,22 @@ export default function NotificationDropdown({
           key={n.id}
           onClick={() => handleClick(n)}
           className={`
-            flex gap-3 p-3 cursor-pointer 
+            flex gap-3 p-3 cursor-pointer
             hover:bg-gray-50 transition
             ${!n.isRead ? "bg-blue-50" : ""}
           `}
         >
           <img
-            src={n.sender?.profile?.image || "/avatar.png"}
+            src={n.sender?.profile?.image ?? "/avatar.png"}
             alt="User"
             className="w-10 h-10 rounded-full shrink-0"
           />
 
           <div className="min-w-0">
-            <p className="text-sm text-gray-800 wrap-break-words">
-              <b className="font-semibold">{n.sender?.name}</b>{" "}
+            <p className="text-sm text-gray-800 break-words">
+              <b className="font-semibold">
+                {n.sender?.name ?? "Someone"}
+              </b>{" "}
               {n.message}
             </p>
           </div>
