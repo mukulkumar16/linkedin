@@ -1,7 +1,6 @@
-
 "use client";
 
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { ThumbsUp, MessageSquareMore } from "lucide-react";
 import Image from "next/image";
 import { useUser } from "@/app/context/userContext";
@@ -9,18 +8,6 @@ import Link from "next/link";
 
 /* ---------------- TYPES ---------------- */
 
-
-interface UserProfile {
-  image?: string;
-}
-
-interface data {
-  name?: string;
-  profile?: UserProfile;
-  data?: any;
-}
-
-type UserContext = data | null;
 interface UserProfile {
   image?: string;
   headline?: string;
@@ -43,16 +30,13 @@ interface CommentType {
   id: number | string;
   postId: string;
   content: string;
-  user: {
-    name?: string;
-    profile?: UserProfile;
-  };
+  user: User;
 }
 
 /* ---------------- COMPONENT ---------------- */
 export default function PostComp({ post }: { post: Post }) {
   const postId = post.id;
-  const { user }: { user: UserContext } = useUser();
+  const { user } = useUser(); // ✅ properly typed
 
   const [likeState, setLikeState] = useState({
     likesCount: 0,
@@ -63,102 +47,125 @@ export default function PostComp({ post }: { post: Post }) {
   const [newComment, setNewComment] = useState("");
   const [comments, setComments] = useState<CommentType[]>([]);
 
-  /* LOAD COMMENTS */
+  /* ---------------- LOAD COMMENTS ---------------- */
   useEffect(() => {
     if (!showComments) return;
 
     const loadComments = async () => {
-      const res = await fetch(`/api/comments/${postId}`);
-      const data = await res.json();
-      setComments(Array.isArray(data.comments) ? data.comments : []);
+      try {
+        const res = await fetch(`/api/comments/${postId}`);
+        if (!res.ok) throw new Error("Failed to fetch comments");
+
+        const data = await res.json();
+        setComments(Array.isArray(data.comments) ? data.comments : []);
+      } catch (err) {
+        console.error(err);
+      }
     };
 
     loadComments();
   }, [showComments, postId]);
 
-  /* ADD COMMENT */
+  /* ---------------- ADD COMMENT ---------------- */
   const handleAddComment = async () => {
-    if (!newComment.trim()) return;
+    if (!newComment.trim() || !user) return;
 
     const tempComment: CommentType = {
-      id: Date.now(),
-      postId,
-      content: newComment,
-      user: {
-        name: user?.name,
-        profile: {
-          headline: user?.profile?.headline,
-          image: user?.profile?.image,
-        },
-      },
-    };
+  id: Date.now(),
+  postId,
+  content: newComment,
+  user: {
+    name: user.name,
+    profile: {
+      headline: user.profile?.headline ?? undefined,
+      image: user.profile?.image ?? undefined,
+    },
+  },
+};
 
+
+    // Optimistic update
     setComments((prev) => [tempComment, ...prev]);
     setNewComment("");
 
-    const res = await fetch("/api/comments", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        postId,
-        content: tempComment.content,
-      }),
-    });
-
-    if (!res.ok) alert("Failed to add comment");
-  };
-
-  /* LOAD LIKES */
-  useEffect(() => {
-    const loadLikes = async () => {
-      const res = await fetch("/api/likeCount", {
+    try {
+      const res = await fetch("/api/comments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ postId }),
+        body: JSON.stringify({
+          postId,
+          content: tempComment.content,
+        }),
       });
 
-      if (!res.ok) return;
+      if (!res.ok) throw new Error("Failed to add comment");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to add comment");
+    }
+  };
 
-      const data = await res.json();
-      setLikeState({
-        likesCount: data.likesCount,
-        likedByUser: data.likedByUser,
-      });
+  /* ---------------- LOAD LIKES ---------------- */
+  useEffect(() => {
+    const loadLikes = async () => {
+      try {
+        const res = await fetch("/api/likeCount", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ postId }),
+        });
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+        setLikeState({
+          likesCount: data.likesCount,
+          likedByUser: data.likedByUser,
+        });
+      } catch (err) {
+        console.error(err);
+      }
     };
 
     loadLikes();
   }, [postId]);
 
-  /* TOGGLE LIKE */
+  /* ---------------- TOGGLE LIKE ---------------- */
   const toggleLike = async () => {
     setLikeState((prev) => ({
       likesCount: prev.likedByUser ? prev.likesCount - 1 : prev.likesCount + 1,
       likedByUser: !prev.likedByUser,
     }));
 
-    const res = await fetch("/api/like", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ postId }),
-    });
+    try {
+      const res = await fetch("/api/like", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postId }),
+      });
 
-    if (!res.ok) {
-      setLikeState((prev) => ({
-        likesCount: prev.likedByUser
-          ? prev.likesCount - 1
-          : prev.likesCount + 1,
-        likedByUser: !prev.likedByUser,
-      }));
+      if (!res.ok) {
+        // revert optimistic update
+        setLikeState((prev) => ({
+          likesCount: prev.likedByUser
+            ? prev.likesCount - 1
+            : prev.likesCount + 1,
+          likedByUser: !prev.likedByUser,
+        }));
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
+  /* ---------------- RENDER ---------------- */
   return (
     <div className="w-full bg-white border rounded-xl p-4 sm:p-6 mb-4">
       {/* USER */}
-      <Link href={`/profile/${post?.user?.id || ""}`}>
+      <Link href={`/profile/${post.user?.id || ""}`}>
         <div className="flex items-center gap-3">
           <div className="relative w-10 h-10 rounded-full overflow-hidden">
-            {post?.user?.profile?.image && (
+            {post.user?.profile?.image && (
               <Image
                 src={post.user.profile.image}
                 alt="Profile"
@@ -168,18 +175,18 @@ export default function PostComp({ post }: { post: Post }) {
             )}
           </div>
           <h2 className="font-semibold text-sm sm:text-base">
-            {post?.user?.name}
+            {post.user?.name}
           </h2>
         </div>
       </Link>
 
       {/* CAPTION */}
-      <div className="mt-3 text-sm sm:text-base wrap-break-words">
-        {post?.caption}
+      <div className="mt-3 text-sm sm:text-base break-words">
+        {post.caption}
       </div>
 
       {/* IMAGE */}
-      {post?.image && (
+      {post.image && (
         <img
           src={post.image}
           alt="post"
@@ -190,13 +197,10 @@ export default function PostComp({ post }: { post: Post }) {
       {/* ACTIONS */}
       <hr className="mt-4" />
       <div className="flex gap-6 mt-4 text-sm">
-
         <button onClick={toggleLike} className="flex gap-2 items-center">
           <ThumbsUp
             size={18}
-            className={
-              likeState.likedByUser ? "text-blue-600" : "text-gray-600"
-            }
+            className={likeState.likedByUser ? "text-blue-600" : "text-gray-600"}
           />
           <span>{likeState.likesCount}</span>
         </button>
@@ -216,9 +220,9 @@ export default function PostComp({ post }: { post: Post }) {
           {/* INPUT */}
           <div className="flex gap-3 mb-4">
             <div className="relative w-9 h-9 rounded-full overflow-hidden shrink-0">
-              {user?.data?.profile?.image && (
+              {user?.profile?.image && (
                 <Image
-                  src={user.data.profile.image}
+                  src={user.profile.image}
                   alt="Profile"
                   fill
                   className="object-cover"
@@ -273,12 +277,8 @@ const Comment = ({ comment }: { comment: CommentType }) => {
 
       <div className="bg-gray-100 rounded-lg px-4 py-2 w-full">
         <p className="text-sm font-semibold">{comment.user?.name}</p>
-        <p className="text-xs text-gray-500">
-          {comment.user?.profile?.headline}
-        </p>
-        <p className="text-sm mt-1 wrap-break-words whitespace-pre-wrap">
-          {comment.content}
-        </p>
+        <p className="text-xs text-gray-500">{comment.user?.profile?.headline}</p>
+        <p className="text-sm mt-1 break-words whitespace-pre-wrap">{comment.content}</p>
       </div>
     </div>
   );

@@ -31,7 +31,7 @@ export default function ConnectionButton({ profileUserId  , loggedInUserId } : {
     router.refresh();
   };
 
-  const respond = async (action : any) => {
+  const respond = async (action : string ) => {
     await fetch("/api/connection/respond", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

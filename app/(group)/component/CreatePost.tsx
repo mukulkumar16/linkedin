@@ -8,20 +8,6 @@ import { useUser } from "@/app/context/userContext";
 
 
 
-interface UserProfile {
-  image?: string;
-}
-
-interface data {
-  name?: string;
-  profile?: UserProfile;
-  data?: any;
-}
-
-type UserContext = data | null;
-
-
-
 
 export default function CreatePostModal({
   onClose,
@@ -29,7 +15,7 @@ export default function CreatePostModal({
   onClose: () => void;
 }) {
 
-  const { user }: { user: UserContext } = useUser();
+  const { user }= useUser();
 
   const [caption, setCaption] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -124,9 +110,9 @@ export default function CreatePostModal({
         <div className="flex-1 overflow-y-auto">
           {/* User Info */}
           <div className="flex items-center gap-3 p-4">
-            {user?.data?.profile?.image && <div className="relative w-7.5 h-7.5 rounded-full overflow-hidden">
+            {user?.profile?.image && <div className="relative w-7.5 h-7.5 rounded-full overflow-hidden">
               <Image
-                src={user?.data?.profile?.image}
+                src={user?.profile?.image}
                 alt="Profile"
                 fill
                 className="object-cover"
@@ -134,7 +120,7 @@ export default function CreatePostModal({
             </div>
             }
             <div>
-              <p className="font-semibold text-sm">{user?.data?.name}</p>
+              <p className="font-semibold text-sm">{user?.name}</p>
               <span className="text-xs text-gray-500">Post to Anyone</span>
             </div>
           </div>

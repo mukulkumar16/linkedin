@@ -4,21 +4,10 @@ import Image from 'next/image';
 import { useUser } from '@/app/context/userContext';
 import { MapPin, Briefcase } from 'lucide-react';
 
-interface UserProfile {
-  image?: string;
-}
 
-interface data {
-  name?: string;
-  profile?: UserProfile;
-  data?: any;
-
-}
-
-type UserContext = data | null;
 
 export default function ProfileCard() {
-  const { user, loading }: { user: UserContext; loading: boolean } = useUser();
+  const { user, loading } = useUser();
 
   if (loading) {
     return (
@@ -45,7 +34,7 @@ export default function ProfileCard() {
       <div className="relative flex justify-center -mt-8">
         <div className="relative w-16 h-16 rounded-full overflow-hidden border-4 border-white">
           <Image
-            src={user?.data?.profile?.image || '/avatar.png'}
+            src={user?.profile?.image || '/avatar.png'}
             alt="Profile"
             fill
             className="object-cover"
@@ -56,26 +45,26 @@ export default function ProfileCard() {
       {/* User Info */}
       <div className="px-4 pb-4 text-center">
         <h3 className="mt-2 font-semibold text-gray-900">
-          {user?.data?.name}
+          {user?.name}
         </h3>
 
         <p className="text-sm text-gray-600">
-          {user?.data?.profile?.headline || 'Frontend Developer'}
+          {user?.profile?.headline || 'Frontend Developer'}
         </p>
 
         {/* Location */}
-        {user?.data?.profile?.location && (
+        {user?.profile?.location && (
           <div className="flex items-center justify-center gap-1 mt-2 text-xs text-gray-500">
             <MapPin size={14} />
-            <span>{user.data.profile.location}</span>
+            <span>{user?.profile?.location}</span>
           </div>
         )}
 
         {/* Company */}
-        {user?.data?.profile?.company && (
+        {user?.profile?.company && (
           <div className="flex items-center justify-center gap-1 mt-1 text-xs text-gray-500">
             <Briefcase size={14} />
-            <span>{user.data.profile.company}</span>
+            <span>{user?.profile?.company}</span>
           </div>
         )}
 

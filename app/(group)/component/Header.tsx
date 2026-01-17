@@ -3,7 +3,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useUser } from "@/app/context/userContext";
 import { useEffect, useState } from "react";
 import { useClerk } from "@clerk/nextjs";
 import { useUnread } from '@/app/(group)/context/UnreadCount';
@@ -19,29 +18,29 @@ import {
 import NotificationBell from "./NotificationBell";
 
 
-interface UserProfile {
-    image?: string;
-}
 
 interface data {
     name?: string;
-    profile?: UserProfile;
-    data?: any;
+    profile?: {
+        image?: string,
+        headline : string 
+    }
+   
 }
 
-type UserContext = data | null;
+
 
 
 const Header = () => {
     const [isopen, setIsOpen] = useState(false);
     const router = useRouter();
-    const [userData, setUserData] = useState<any>(null);
+    const [userData, setUserData] = useState<data | null>(null);
     const [networkCount, setNetworkCount] = useState<number>(0);
     const { totalUnread } = useUnread();
 
 
     const [query, setQuery] = useState("");
-    const { user }: { user: UserContext } = useUser();
+    // const { user }: { user: UserContext } = useUser();
     const { signOut } = useClerk();
 
     useEffect(() => {
@@ -163,7 +162,7 @@ const Header = () => {
                             <div className="relative w-8 h-8 rounded-full overflow-hidden">
                                 <Image
                                     src={
-                                        user?.data?.profile?.image ||
+                                        userData?.profile?.image ||
                                         "https://static.vecteezy.com/system/resources/thumbnails/005/545/335/small/user-sign-icon-person-symbol-human-avatar-isolated-on-white-backogrund-vector.jpg"
                                     }
                                     alt="Profile"
@@ -194,9 +193,9 @@ const Header = () => {
                                         {/* User Info */}
                                         <div className="p-4 border-b">
                                             <div className="flex items-center gap-3">
-                                                {user?.data?.profile?.image ? (<div className="relative w-7.5 h-7.5 rounded-full overflow-hidden">
+                                                {userData?.profile?.image ? (<div className="relative w-7.5 h-7.5 rounded-full overflow-hidden">
                                                     <Image
-                                                        src={user?.data?.profile?.image}
+                                                        src={userData?.profile?.image}
                                                         alt="Profile"
                                                         fill
                                                         className="object-cover"

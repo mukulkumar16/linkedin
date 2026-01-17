@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -9,45 +8,32 @@ import PostComp from "../component/PostComp";
 import CreatePostModal from "@/app/(group)/component/CreatePost";
 import { useUser } from "@/app/context/userContext";
 import Footer from "../component/Footer";
+import type { User } from "@/app/type/user";
 
 /* ---------- TYPES ---------- */
 interface Post {
   id: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
-
-
-interface UserProfile {
-  image?: string;
-}
-
-interface data {
-  name?: string;
-  profile?: UserProfile;
-  data?: any;
-}
-
-type UserContext = data | null;
-
 
 export default function Page() {
   const [openPostModal, setOpenPostModal] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
-  const { user }: { user: UserContext } = useUser();
+  const { user } = useUser(); // ✅ correct typing comes from context
 
   useEffect(() => {
     fetchPosts();
   }, []);
 
-  const fetchPosts = async () => {
+  async function fetchPosts() {
     try {
       const res = await fetch("/api/post");
-      const data = await res.json();
-      setPosts(data.data);
+      const json = await res.json();
+      setPosts(json.data);
     } catch (err) {
       console.error("Failed to load posts", err);
     }
-  };
+  }
 
   return (
     <div className="bg-[#f3f2ef] min-h-screen flex flex-col">
@@ -55,7 +41,7 @@ export default function Page() {
       <div className="max-w-6xl mx-auto w-full px-2 sm:px-4 py-6 grid grid-cols-1 md:grid-cols-12 gap-4 flex-1">
 
         {/* LEFT SIDEBAR */}
-        <aside className="hidden md:block md:col-span-3 ">
+        <aside className="hidden md:block md:col-span-3">
           <SideCard />
         </aside>
 
@@ -67,7 +53,7 @@ export default function Page() {
               <div className="relative w-10 h-10 rounded-full overflow-hidden shrink-0">
                 <Image
                   src={
-                    user?.data?.profile?.image ||
+                    user?.profile?.image ||
                     "https://static.vecteezy.com/system/resources/thumbnails/005/545/335/small/user-sign-icon-person-symbol-human-avatar-isolated-on-white-backogrund-vector.jpg"
                   }
                   alt="Profile"
@@ -90,7 +76,7 @@ export default function Page() {
           </div>
 
           {/* POSTS */}
-          {posts?.map((post) => (
+          {posts.map((post) => (
             <PostComp key={post.id} post={post} />
           ))}
         </main>

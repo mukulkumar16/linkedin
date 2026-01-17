@@ -1,37 +1,75 @@
-
 "use client";
 
 import { useRouter } from "next/navigation";
 
+/* ---------- TYPES ---------- */
+type NotificationType =
+  | "POST_LIKE"
+  | "POST_COMMENT"
+  | "CONNECTION_ACCEPTED";
 
+interface SenderProfile {
+  image?: string;
+}
 
-export default function NotificationDropdown({ notifications, setNotifications } : {notifications : any , setNotifications : any}) {
+interface Sender {
+  id: string;
+  name: string;
+  profile?: SenderProfile;
+}
+
+interface Notification {
+  id: string;
+  isRead: boolean;
+  type: NotificationType;
+  message: string;
+  entityId?: string;
+  senderId?: string;
+  sender?: Sender;
+}
+
+interface NotificationDropdownProps {
+  notifications: Notification[];
+  setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
+}
+
+export default function NotificationDropdown({
+  notifications,
+  setNotifications,
+}: NotificationDropdownProps) {
   const router = useRouter();
 
-  async function handleClick(n : any) {
+  async function handleClick(n: Notification) {
     await fetch("/api/notification/read", {
       method: "PATCH",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: n.id }),
     });
 
     // Remove notification from UI
-    setNotifications((prev : any) => prev.filter((p : any) => p.id !== n.id));
+    setNotifications((prev) => prev.filter((p) => p.id !== n.id));
 
     if (n.type === "POST_LIKE" || n.type === "POST_COMMENT") {
-      router.push(`/post/${n.entityId}`);
+      if (n.entityId) {
+        router.push(`/post/${n.entityId}`);
+      }
     } else if (n.type === "CONNECTION_ACCEPTED") {
-      router.push(`/profile/${n.senderId}`);
+      if (n.senderId) {
+        router.push(`/profile/${n.senderId}`);
+      }
     }
   }
 
   return (
-    <div className="
-      absolute right-0 mt-2 
-      w-[80vw] max-w-md 
-      bg-white shadow-lg rounded-lg 
-      overflow-hidden
-    ">
-      {notifications.map((n : any )=> (
+    <div
+      className="
+        absolute right-0 mt-2 
+        w-[80vw] max-w-md 
+        bg-white shadow-lg rounded-lg 
+        overflow-hidden
+      "
+    >
+      {notifications.map((n) => (
         <div
           key={n.id}
           onClick={() => handleClick(n)}
@@ -43,11 +81,12 @@ export default function NotificationDropdown({ notifications, setNotifications }
         >
           <img
             src={n.sender?.profile?.image || "/avatar.png"}
+            alt="User"
             className="w-10 h-10 rounded-full shrink-0"
           />
 
           <div className="min-w-0">
-            <p className="text-sm text-gray-800 wrap-break-word">
+            <p className="text-sm text-gray-800 wrap-break-words">
               <b className="font-semibold">{n.sender?.name}</b>{" "}
               {n.message}
             </p>
