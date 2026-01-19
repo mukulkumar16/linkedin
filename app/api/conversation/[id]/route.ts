@@ -3,7 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 export const dynamic = "force-dynamic";
-
+export const runtime = "nodejs";
 interface RouteContext {
   params: Promise<{
     id: string;

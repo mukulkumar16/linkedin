@@ -4,7 +4,6 @@ export default clerkMiddleware();
 
 export const config = {
   matcher: [
-    // Protect all app routes except static files
-    "/((?!_next|.*\\..*).*)",
+    "/((?!_next|favicon.ico|.*\\..*).*)",
   ],
 };

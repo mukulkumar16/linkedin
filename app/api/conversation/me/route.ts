@@ -2,6 +2,7 @@ import prisma from "@/helper/prisma";
 import { currentUser } from "@clerk/nextjs/server";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 export async function GET() {
   const me = await currentUser();
 

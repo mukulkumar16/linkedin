@@ -1,6 +1,6 @@
 import prisma from "@/helper/prisma";
 export const dynamic = "force-dynamic";
-
+export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   const { text, senderId, conversationId } = await req.json();

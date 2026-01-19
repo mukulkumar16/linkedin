@@ -1,6 +1,8 @@
 "use client";
 import Link from "next/link";
 import { SignIn } from "@clerk/nextjs";
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export default function SignInPage() {
   return (

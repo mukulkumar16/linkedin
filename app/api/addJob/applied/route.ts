@@ -1,12 +1,14 @@
 // app/api/addJob/applied/route.ts
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 import { auth } from "@clerk/nextjs/server";
 import prisma from "@/helper/prisma";
 import { NextRequest, NextResponse } from "next/server";
-export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   const { userId } = await auth();
+
   if (!userId) {
     return NextResponse.json({ applied: false });
   }
@@ -33,5 +35,5 @@ export async function GET(req: NextRequest) {
     },
   });
 
-  return NextResponse.json({ applied: !!applied });
+  return NextResponse.json({ applied: Boolean(applied) });
 }

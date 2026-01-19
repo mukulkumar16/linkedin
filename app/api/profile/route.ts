@@ -1,7 +1,7 @@
 import prisma from "@/helper/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
-
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic"
 export async function POST(req: NextRequest) {
   try {

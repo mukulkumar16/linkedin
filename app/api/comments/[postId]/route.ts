@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/helper/prisma";
 export const dynamic = "force-dynamic";
-
+export const runtime = "nodejs";
 export async function GET(
   req: NextRequest,
   context: { params: Promise<{ postId: string }> }

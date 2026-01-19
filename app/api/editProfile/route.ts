@@ -2,7 +2,7 @@ import prisma from "@/helper/prisma";
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 export const dynamic = "force-dynamic";
-
+export const runtime = "nodejs";
 export async function PATCH(req: Request) {
   try {
     const {userId} = await auth();

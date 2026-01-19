@@ -1,5 +1,5 @@
 import prisma from "@/helper/prisma";
-
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export async function PATCH(req: Request) {
   const { id } = await req.json();

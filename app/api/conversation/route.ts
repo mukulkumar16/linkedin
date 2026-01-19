@@ -2,7 +2,7 @@ import prisma from "@/helper/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
-
+export const runtime = "nodejs";
 export async function POST(req: Request) {
   const { receiverId } = await req.json();
 

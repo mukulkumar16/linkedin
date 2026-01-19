@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/helper/prisma";
-
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export async function GET() {
   try {

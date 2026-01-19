@@ -3,7 +3,7 @@ import prisma from "@/helper/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { createNotification } from "@/helper/createNotification";
 export const dynamic = "force-dynamic";
-
+export const runtime = "nodejs";
 export async function POST(req: Request) {
   try {
     const {userId} = await auth();
