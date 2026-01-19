@@ -143,8 +143,13 @@ const Header = () => {
                             )}
                         </Link>
 
-
+                        <div className="flex flex-col items-center gap-1">
                         <NotificationBell />
+                            <div className="text-xs text-gray-700">
+                            Notification
+                            </div>
+
+                        </div>
 
                         {/* PROFILE */}
                         <div
