@@ -1,10 +1,11 @@
 "use client";
-
-import  { useEffect, useState } from "react";
 import { ThumbsUp, MessageSquareMore } from "lucide-react";
 import Image from "next/image";
 import { useUser } from "@/app/context/userContext";
 import Link from "next/link";
+import { MoreVertical } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+
 
 /* ---------------- TYPES ---------------- */
 
@@ -38,15 +39,34 @@ interface CommentType {
 export default function PostComp({ post }: { post: Post }) {
   const postId = post.id;
   const { user } = useUser(); 
-
+  const [showMenu, setShowMenu] = useState(false);
   const [likeState, setLikeState] = useState({
     likesCount: 0,
     likedByUser: false,
   });
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   const [showComments, setShowComments] = useState<boolean>(false);
   const [newComment, setNewComment] = useState<string>("");
   const [comments, setComments] = useState<CommentType[]>([]);
+
+  const handleDeletePost = async () => {
+  if (!confirm("Are you sure you want to delete this post?")) return;
+
+  try {
+    const res = await fetch(`/api/post/${postId}`, {
+      method: "DELETE",
+    });
+
+    if (!res.ok) throw new Error("Failed to delete post");
+
+    window.location.reload(); // simplest safe refresh
+  } catch (err) {
+    console.error(err);
+    alert("Failed to delete post");
+  }
+};
+
 
   /* ---------------- LOAD COMMENTS ---------------- */
   useEffect(() => {
@@ -131,6 +151,26 @@ export default function PostComp({ post }: { post: Post }) {
     loadLikes();
   }, [postId]);
 
+
+  useEffect(() => {
+  function handleClickOutside(e: MouseEvent) {
+    if (
+      menuRef.current &&
+      !menuRef.current.contains(e.target as Node)
+    ) {
+      setShowMenu(false);
+    }
+  }
+
+  if (showMenu) {
+    document.addEventListener("mousedown", handleClickOutside);
+  }
+
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, [showMenu]);
+
   /* ---------------- TOGGLE LIKE ---------------- */
   const toggleLike = async () => {
     setLikeState((prev) => ({
@@ -162,24 +202,50 @@ export default function PostComp({ post }: { post: Post }) {
   /* ---------------- RENDER ---------------- */
   return (
     <div className="w-full bg-white border rounded-xl p-4 sm:p-6 mb-4">
-      {/* USER */}
-      <Link href={`/profile/${post.user?.id || ""}`}>
-        <div className="flex items-center gap-3">
-          <div className="relative w-10 h-10 rounded-full overflow-hidden">
-            {post.user?.profile?.image && (
-              <Image
-                src={post.user.profile.image}
-                alt="Profile"
-                fill
-                className="object-cover"
-              />
-            )}
-          </div>
-          <h2 className="font-semibold text-sm sm:text-base">
-            {post.user?.name}
-          </h2>
-        </div>
-      </Link>
+      <div className="flex justify-between items-start">
+  <Link href={`/profile/${post.user?.id || ""}`}>
+    <div className="flex items-center gap-3">
+      <div className="relative w-10 h-10 rounded-full overflow-hidden">
+        {post.user?.profile?.image && (
+          <Image
+            src={post.user.profile.image}
+            alt="Profile"
+            fill
+            className="object-cover"
+          />
+        )}
+      </div>
+      <h2 className="font-semibold text-sm sm:text-base">
+        {post.user?.name}
+      </h2>
+    </div>
+  </Link>
+
+{user?.id === post.user?.id && (
+  <div className="relative" ref={menuRef}>
+    <button onClick={() => setShowMenu((p) => !p)}>
+      <MoreVertical size={18} />
+    </button>
+
+    {showMenu && (
+      <div className="absolute right-0 mt-2 w-32 bg-white border rounded-lg shadow-md z-50">
+        <button
+          onClick={handleDeletePost}
+          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+        >
+          Delete post
+        </button>
+      </div>
+    )}
+  </div>
+)}
+
+</div>
+
+
+
+
+
 
       {/* CAPTION */}
       <div className="mt-3 text-sm sm:text-base wrap-break-words">

@@ -13,6 +13,10 @@ interface Member {
   name: string;
   image?: string;
   isMe?: boolean;
+  clerkId : string
+  profile?: {
+    image?: string;
+  }
 }
 
 export interface Conversation {
@@ -22,6 +26,7 @@ export interface Conversation {
     createdAt?: string;
   };
 }
+
 
 interface Message {
   text: string;
@@ -54,7 +59,9 @@ export default function ChatWindow({ conversation }: ChatWindowProps) {
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const { user: myuser } = useUser();
 
-  const user = conversation?.members?.find((m) => !m.isMe);
+  const user = conversation?.members?.find((m) => m.clerkId !== myuser?.id);
+
+  console.log("chat data from chatwindow " ,  conversation);
 
   /* ---------- HELPERS ---------- */
 
@@ -184,9 +191,9 @@ export default function ChatWindow({ conversation }: ChatWindowProps) {
       {/* HEADER */}
       <div className="p-3 sm:p-4 border-b flex items-center gap-3 bg-white sticky top-0 z-10">
         <div className="relative w-9 h-9 rounded-full overflow-hidden shrink-0">
-          {user?.image && (
+          {user?.profile?.image && (
             <Image
-              src={user.image}
+              src={user?.profile?.image}
               alt="Profile"
               fill
               className="object-cover"
