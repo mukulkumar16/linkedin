@@ -4,9 +4,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   _: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params; // ✅ IMPORTANT
+  const { id } = await context.params; // ✅ await params here
 
   const { userId } = await auth();
   if (!userId) {
@@ -17,7 +17,6 @@ export async function GET(
     where: { clerkId: userId },
   });
 
-  // Prevent self-view
   if (!viewer || viewer.id === id) {
     return NextResponse.json({});
   }

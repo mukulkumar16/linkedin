@@ -3,10 +3,10 @@ import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
-  _: NextRequest,
-  { params }: { params: Promise<{ conversationId: string }> }
+   _: NextRequest,
+  context: { params: Promise<{ conversationId: string }> }
 ) {
-  const { conversationId } = await params;
+  const { conversationId } = await context.params;
 
   const { userId } = await auth();
   if (!userId) return NextResponse.json({}, { status: 401 });

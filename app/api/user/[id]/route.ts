@@ -4,16 +4,12 @@ import { auth } from "@clerk/nextjs/server";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-interface RouteContext {
-  params: Promise<{
-    id: string;
-  }>;
-}
+
 
 export async function GET(
-  _request: NextRequest,
-   { params }: RouteContext
- ): Promise<Response>
+  _: NextRequest,
+  context: { params: Promise<{ id: string }> }
+ )
  {
   const {userId} = await auth();
 
@@ -21,7 +17,7 @@ export async function GET(
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const { id } = await params; // ✅ await params, NOT params.id
+   const { id } = await context.params; // ✅ await params, NOT params.id
   console.log("id from params ",id);
 
   try {

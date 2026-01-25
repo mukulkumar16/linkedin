@@ -1,13 +1,13 @@
 import prisma from "@/helper/prisma";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export async function GET(
-  _: Request,
-  { params }: { params: Promise<{ conversationId: string }> }
+  _: NextRequest,
+   context: { params: Promise<{ conversationId: string }> }
 ) {
-  const { conversationId } = await params;
+  const { conversationId } = await context.params;
 
   const {userId} = await auth();
   if (!userId) return NextResponse.json([]);
