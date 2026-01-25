@@ -1,11 +1,13 @@
 import prisma from "@/helper/prisma";
 import { auth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
-  _: Request,
-  { params }: { params: { conversationId: string } }
+  _: NextRequest,
+  { params }: { params: Promise<{ conversationId: string }> }
 ) {
+  const { conversationId } = await params;
+
   const { userId } = await auth();
   if (!userId) return NextResponse.json({}, { status: 401 });
 
@@ -19,7 +21,7 @@ export async function POST(
     where: {
       userId_conversationId: {
         userId: me.id,
-        conversationId: params.conversationId,
+        conversationId,
       },
     },
     update: {
@@ -27,7 +29,7 @@ export async function POST(
     },
     create: {
       userId: me.id,
-      conversationId: params.conversationId,
+      conversationId,
     },
   });
 
