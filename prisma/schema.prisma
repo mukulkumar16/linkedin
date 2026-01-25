@@ -16,7 +16,14 @@ model User {
   email     String   @unique
   password  String?               
   conversations Conversation[] @relation("UserConversations")
+  conversationReads ConversationReads[]
   createdAt DateTime @default(now())
+
+  isPremium Boolean  @default(false)
+  premiumEndsAt DateTime?
+
+  profileViewsReceived ProfileView[] @relation("ProfileViewOwner")
+  profileViewsMade     ProfileView[] @relation("ProfileViewViewer")
 
   profile   Profile?
 
@@ -31,6 +38,22 @@ model User {
   sentConnections     Connection[] @relation("SentConnections")
   receivedConnections Connection[] @relation("ReceivedConnections")
 }
+
+
+model ProfileView {
+  id        String   @id @default(uuid())
+
+  viewerId  String
+  ownerId   String
+
+  viewer User @relation("ProfileViewViewer", fields: [viewerId], references: [id])
+  owner  User @relation("ProfileViewOwner", fields: [ownerId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([viewerId, ownerId])
+}
+
 
 
 model JobApplication {
@@ -105,26 +128,51 @@ enum ApplicationStatus {
 
 
 
-model Conversation {
-  id        String   @id @default(uuid())
-  members   User[]   @relation("UserConversations")
-  messages  Message[]
-  createdAt DateTime @default(now())
-}
+
 
 model Message {
   id             String   @id @default(uuid())
-  text           String
+  text           String?
   senderId       String
   conversationId String
   createdAt      DateTime @default(now())
 
+  type           MessageType @default(TEXT)
+  sharedPostId   String?
+  sharedPost     Post?       @relation(fields: [sharedPostId], references: [id])
+
   conversation Conversation @relation(fields: [conversationId], references: [id])
 }
 
+enum MessageType {
+  TEXT
+  POST
+}
 
+model Conversation {
+  id        String   @id @default(uuid())
+  members   User[]   @relation("UserConversations")
+  messages  Message[]
 
+  // Relation to track read messages
+  conversationReads ConversationReads[] @relation("ConversationReadRelation")
 
+  createdAt DateTime @default(now())
+}
+
+model ConversationReads {
+  id             String   @id @default(uuid())
+  userId         String
+  conversationId String
+  lastReadAt     DateTime @default(now())
+
+  user           User         @relation(fields: [userId], references: [id])
+
+  // 🔥 Add the relation name to match Conversation
+  conversation   Conversation @relation("ConversationReadRelation", fields: [conversationId], references: [id])
+
+  @@unique([userId, conversationId])
+}
 
 
 
@@ -176,6 +224,7 @@ model Post {
 
   comments  Comment[]
   likes     Like[]
+  sharedMessages Message[]
 
   createdAt DateTime @default(now())
 }

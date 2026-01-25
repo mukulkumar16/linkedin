@@ -11,36 +11,49 @@ import Link from "next/link";
 interface Member {
   id: string;
   name: string;
-  image?: string;
-  isMe?: boolean;
-  clerkId : string
+  clerkId: string;
   profile?: {
     image?: string;
-  }
+  };
+}
+
+interface SharedPost {
+  id: string;
+  caption?: string;
+  image?: string;
+  user?: {
+    id: string;
+    name?: string;
+    profile?: {
+      image?: string;
+    };
+  };
 }
 
 export interface Conversation {
   id: string;
   members: Member[];
-  lastMessage?: {
-    createdAt?: string;
-  };
 }
 
-
 interface Message {
-  text: string;
+  type: "TEXT" | "POST";
+  text?: string;
+  sharedPost?: SharedPost;
   self: boolean;
 }
 
 interface ApiMessage {
-  text: string;
+  type: "TEXT" | "POST";
+  text?: string;
+  sharedPost?: SharedPost;
   isSender: boolean;
 }
 
 interface ReceiveMessagePayload {
   conversationId: string;
-  text: string;
+  type: "TEXT" | "POST";
+  text?: string;
+  sharedPost?: SharedPost;
 }
 
 interface ChatWindowProps {
@@ -51,60 +64,44 @@ interface ChatWindowProps {
 
 export default function ChatWindow({ conversation }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [text, setText] = useState<string>("");
-
-  const [loadingMessages, setLoadingMessages] = useState<boolean>(false);
-  const [sending, setSending] = useState<boolean>(false);
+  const [text, setText] = useState("");
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const { user: myuser } = useUser();
 
-  const user = conversation?.members?.find((m) => m.clerkId !== myuser?.id);
+  const user = conversation?.members.find(
+    (m) => m.clerkId !== myuser?.id
+  );
 
-  console.log("chat data from chatwindow " ,  conversation);
 
-  /* ---------- HELPERS ---------- */
+  /* ---------- MARK CONVERSATION AS READ ---------- */
 
-  function timeAgo(date: string): string {
-    const seconds = Math.floor(
-      (Date.now() - new Date(date).getTime()) / 1000
-    );
+useEffect(() => {
+  if (!conversation) return;
 
-    const intervals: Record<string, number> = {
-      year: 31536000,
-      month: 2592000,
-      day: 86400,
-      hour: 3600,
-      minute: 60,
-    };
+  fetch(`/api/message/mark-read/${conversation.id}`, {
+    method: "POST",
+  });
+}, [conversation?.id]);
 
-    for (const key in intervals) {
-      const value = Math.floor(seconds / intervals[key]);
-      if (value >= 1) {
-        return `${value} ${key}${value > 1 ? "s" : ""} ago`;
-      }
-    }
-    return "Just now";
-  }
 
   /* ---------- FETCH MESSAGES ---------- */
 
   useEffect(() => {
     if (!conversation) return;
 
-    setLoadingMessages(true);
-
     fetch(`/api/message/${conversation.id}`)
       .then((res) => res.json())
       .then((data: ApiMessage[]) => {
         setMessages(
           data.map((m) => ({
+            type: m.type,
             text: m.text,
+            sharedPost: m.sharedPost,
             self: m.isSender,
           }))
         );
-      })
-      .finally(() => setLoadingMessages(false));
+      });
   }, [conversation]);
 
   /* ---------- SOCKET LISTENER ---------- */
@@ -113,16 +110,20 @@ export default function ChatWindow({ conversation }: ChatWindowProps) {
     if (!conversation) return;
 
     const handler = (data: ReceiveMessagePayload) => {
-      if (data.conversationId === conversation.id) {
-        setMessages((prev) => [
-          ...prev,
-          { text: data.text, self: false },
-        ]);
-      }
+      if (data.conversationId !== conversation.id) return;
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          type: data.type,
+          text: data.text,
+          sharedPost: data.sharedPost,
+          self: false,
+        },
+      ]);
     };
 
     socket.on("receive-message", handler);
-
     return () => {
       socket.off("receive-message", handler);
     };
@@ -134,51 +135,89 @@ export default function ChatWindow({ conversation }: ChatWindowProps) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  /* ---------- JOIN ROOM ---------- */
 
   useEffect(() => {
-    if (!conversation) return;
-    socket.emit("join-conversation", conversation.id);
-  }, [conversation]);
+  if (!conversation?.id) return;
 
-  /* ---------- SEND MESSAGE ---------- */
+  socket.emit("join-conversation", conversation.id);
 
-  const sendMessage = async (): Promise<void> => {
-    if (!text.trim() || !conversation || sending || !myuser || !user) return;
+  return () => {
+    socket.emit("leave-conversation", conversation.id);
+  };
+}, [conversation?.id]);
 
-    setSending(true);
+useEffect(() => {
+  if (!myuser?.id) return;
+  socket.emit("join-user", myuser.id);
+}, [myuser?.id]);
 
-    const res = await fetch("/api/message/send", {
+
+  /* ---------- SEND TEXT MESSAGE ---------- */
+
+  const sendTextMessage = async () => {
+    if (!text.trim() || !conversation) return;
+
+    await fetch("/api/message/send", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         conversationId: conversation.id,
+        type: "TEXT",
         text,
       }),
     });
 
-    if (res.ok) {
-      await res.json();
+    socket.emit("send-message", {
+      conversationId: conversation.id,
+      type: "TEXT",
+      text,
+    });
 
-      socket.emit("send-message", {
-        conversationId: conversation.id,
-        senderId: myuser.id,
-        receiverId: user.id,
-        text,
-      });
+    setMessages((prev) => [
+      ...prev,
+      { type: "TEXT", text, self: true },
+    ]);
 
-      setMessages((prev) => [...prev, { text, self: true }]);
-      setText("");
-    }
-
-    setSending(false);
+    setText("");
   };
 
-  /* ---------- EMPTY STATE ---------- */
+  /* ---------- SEND POST MESSAGE ---------- */
+  // Call this function when user clicks "Send in message"
+
+  const sendPostMessage = async (post: SharedPost) => {
+    if (!conversation) return;
+
+    await fetch("/api/message/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        conversationId: conversation.id,
+        type: "POST",
+        sharedPostId: post.id,
+      }),
+    });
+
+    socket.emit("send-message", {
+      conversationId: conversation.id,
+      type: "POST",
+      sharedPost: post, // 🔥 FULL OBJECT
+    });
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        type: "POST",
+        sharedPost: post,
+        self: true,
+      },
+    ]);
+  };
+
+  /* ---------- EMPTY ---------- */
 
   if (!conversation) {
     return (
-      <div className="flex-1 flex items-center justify-center text-gray-500 text-sm">
+      <div className="flex-1 flex items-center justify-center text-gray-500">
         Select a conversation
       </div>
     );
@@ -189,77 +228,90 @@ export default function ChatWindow({ conversation }: ChatWindowProps) {
   return (
     <div className="flex-1 flex flex-col h-full">
       {/* HEADER */}
-      <div className="p-3 sm:p-4 border-b flex items-center gap-3 bg-white sticky top-0 z-10">
-        <div className="relative w-9 h-9 rounded-full overflow-hidden shrink-0">
+      <div className="p-4 border-b flex items-center gap-3 bg-white">
+        <div className="relative w-9 h-9 rounded-full overflow-hidden">
           {user?.profile?.image && (
-            <Image
-              src={user?.profile?.image}
-              alt="Profile"
-              fill
-              className="object-cover"
-            />
+            <Image src={user.profile.image} alt="" fill />
           )}
         </div>
-
-        <div className="flex-1 min-w-0">
-          <Link href={`/profile/${user?.id}`}>
-            <p className="font-semibold text-sm sm:text-base truncate">
-              {user?.name}
-            </p>
-          </Link>
-          <p className="text-xs text-gray-500 truncate">
-            {conversation.lastMessage?.createdAt
-              ? `Last active ${timeAgo(
-                  conversation.lastMessage.createdAt
-                )}`
-              : "Active now"}
-          </p>
-        </div>
+        <Link href={`/profile/${user?.id}`}>
+          <p className="font-semibold">{user?.name}</p>
+        </Link>
       </div>
 
       {/* MESSAGES */}
-      <div className="flex-1 px-3 sm:px-4 py-4 space-y-2 overflow-y-auto bg-gray-50">
-        {loadingMessages ? (
-          <p className="h-full flex items-center justify-center text-gray-400 text-sm">
-            Loading messages…
-          </p>
-        ) : (
-          messages.map((m, i) => (
-            <div
-              key={i}
-              className={`
-                px-4 py-2 rounded-2xl text-sm wrap-break-word
-                max-w-[80%] sm:max-w-[60%]
-                ${
+      <div className="flex-1 p-4 space-y-3 overflow-y-auto bg-gray-50">
+        {messages.map((m, i) => (
+          <div key={i} className={`max-w-[70%] ${m.self ? "ml-auto" : ""}`}>
+            {/* TEXT */}
+            {m.type === "TEXT" && (
+              <div
+                className={`px-4 py-2 rounded-xl text-sm ${
                   m.self
-                    ? "bg-blue-600 text-white ml-auto"
-                    : "bg-white border text-gray-800"
-                }
-              `}
-            >
-              {m.text}
-            </div>
-          ))
-        )}
+                    ? "bg-blue-600 text-white"
+                    : "bg-white border"
+                }`}
+              >
+                {m.text}
+              </div>
+            )}
+
+            {/* POST */}
+            {m.type === "POST" && m.sharedPost && (
+              <div className="border rounded-xl bg-white overflow-hidden">
+                <div className="p-3 flex items-center gap-2 border-b">
+                  <div className="relative w-8 h-8 rounded-full overflow-hidden">
+                    {m.sharedPost.user?.profile?.image && (
+                      <Image
+                        src={m.sharedPost.user.profile.image}
+                        alt=""
+                        fill
+                      />
+                    )}
+                  </div>
+                  <p className="text-sm font-semibold">
+                    {m.sharedPost.user?.name}
+                  </p>
+                </div>
+
+                {m.sharedPost.image && (
+                  <img
+                    src={m.sharedPost.image}
+                    className="w-full max-h-60 object-cover"
+                  />
+                )}
+
+                <div className="p-3 text-sm">
+                  {m.sharedPost.caption}
+                </div>
+
+                <Link
+                  href={`/post/${m.sharedPost.id}`}
+                  className="block text-center text-blue-600 text-sm py-2 border-t"
+                >
+                  View post
+                </Link>
+              </div>
+            )}
+          </div>
+        ))}
         <div ref={bottomRef} />
       </div>
 
       {/* INPUT */}
-      <div className="p-3 border-t flex items-center gap-2 bg-white">
+      <div className="p-3 border-t flex gap-2 bg-white">
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          disabled={sending}
-          placeholder="Write a message…"
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          className="flex-1 border rounded-full px-4 py-2 text-sm disabled:opacity-50"
+          onKeyDown={(e) => e.key === "Enter" && sendTextMessage()}
+          placeholder="Write a message..."
+          className="flex-1 border rounded-full px-4 py-2 text-sm"
         />
         <button
-          onClick={sendMessage}
-          disabled={sending}
-          className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm disabled:opacity-50"
+          onClick={sendTextMessage}
+          className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm"
         >
-          {sending ? "Sending…" : "Send"}
+          Send
         </button>
       </div>
     </div>

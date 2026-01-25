@@ -22,6 +22,7 @@ export async function GET() {
           experience: true,
         },
       },
+      isPremium : true
     },
   });
 

@@ -43,7 +43,7 @@ export async function POST(req : NextRequest) {
     const existing = await prisma.connection.findFirst({
       where: {
         OR: [
-          { senderId: meInDb.id, receiverId },
+          { senderId: meInDb.id, receiverId : receiverId },
           { senderId: receiverId, receiverId: meInDb.id },
         ],
       },

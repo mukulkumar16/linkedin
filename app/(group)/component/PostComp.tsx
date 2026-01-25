@@ -1,11 +1,11 @@
 "use client";
-import { ThumbsUp, MessageSquareMore } from "lucide-react";
+import { ThumbsUp, MessageSquareMore, Send } from "lucide-react";
 import Image from "next/image";
 import { useUser } from "@/app/context/userContext";
 import Link from "next/link";
 import { MoreVertical } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
-
+import { socket } from "@/helper/socket";
 
 /* ---------------- TYPES ---------------- */
 
@@ -34,12 +34,18 @@ interface CommentType {
   user: User;
 }
 
+interface Conversation {
+  id: string;
+  members: User[];
+}
+
 
 /* ---------------- COMPONENT ---------------- */
 export default function PostComp({ post }: { post: Post }) {
   const postId = post.id;
   const { user } = useUser(); 
   const [showMenu, setShowMenu] = useState(false);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [likeState, setLikeState] = useState({
     likesCount: 0,
     likedByUser: false,
@@ -49,6 +55,48 @@ export default function PostComp({ post }: { post: Post }) {
   const [showComments, setShowComments] = useState<boolean>(false);
   const [newComment, setNewComment] = useState<string>("");
   const [comments, setComments] = useState<CommentType[]>([]);
+  const [showShare, setShowShare] = useState(false);
+
+  useEffect(() => {
+  if (!showShare) return;
+
+  fetch("/api/conversations")
+    .then(async (res) => {
+      if (!res.ok) return [];
+      const text = await res.text();
+      return text ? JSON.parse(text) : [];
+    })
+    .then((data) => setConversations(Array.isArray(data) ? data : []))
+    .catch(console.error);
+}, [showShare]);
+
+
+ 
+
+const sharePost = async (conversationId: string) => {
+  const res = await fetch("/api/message/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      conversationId,
+      type: "POST",
+      sharedPostId: postId,
+    }),
+  });
+
+  const data = await res.json();
+
+  // 🔥 EMIT SOCKET EVENT
+  socket.emit("send-message", {
+    conversationId,
+    type: "POST",
+    sharedPost: data.sharedPost, // FULL POST OBJECT
+  });
+
+  setShowShare(false);
+};
+
+
 
   const handleDeletePost = async () => {
   if (!confirm("Are you sure you want to delete this post?")) return;
@@ -279,7 +327,49 @@ export default function PostComp({ post }: { post: Post }) {
           <MessageSquareMore size={18} />
           Comment
         </button>
+      <button
+          onClick={() => setShowShare(true)}
+          className="flex gap-2 items-center"
+        >
+          <Send size={18} />
+          Send
+        </button>
       </div>
+
+         {showShare && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white w-96 rounded-xl p-4">
+            <h3 className="font-semibold mb-3">Send in message</h3>
+
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {conversations.map((c) => {
+                const other = c.members.find((m) => m.id !== user?.id);
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => sharePost(c.id)}
+                    className="w-full flex items-center gap-3 p-2 hover:bg-gray-100 rounded"
+                  >
+                    <div className="relative w-8 h-8 rounded-full overflow-hidden">
+                      {other?.profile?.image && (
+                        <Image src={other.profile.image} alt="" fill />
+                      )}
+                    </div>
+                    <span className="text-sm font-medium">{other?.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => setShowShare(false)}
+              className="mt-3 text-sm text-gray-500"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* COMMENTS */}
       {showComments && (

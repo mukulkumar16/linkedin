@@ -8,7 +8,7 @@ import PostComp from "../component/PostComp";
 import CreatePostModal from "@/app/(group)/component/CreatePost";
 import { useUser } from "@/app/context/userContext";
 import Footer from "../component/Footer";
-
+import PostSkeleton from "../component/PostSkeleton";
 
 /* ---------- TYPES ---------- */
 interface Post {
@@ -20,6 +20,7 @@ export default function Page() {
   const [openPostModal, setOpenPostModal] = useState<boolean>(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const { user } = useUser(); 
+  const [loading , setLoading] = useState(true);
 
   useEffect(() => {
     fetchPosts();
@@ -32,6 +33,9 @@ export default function Page() {
       setPosts(json.data);
     } catch (err) {
       console.error("Failed to load posts", err);
+    }
+    finally {
+      setLoading(false);
     }
   }
 
@@ -75,10 +79,17 @@ export default function Page() {
             )}
           </div>
 
+          
+          {loading &&
+            Array.from({ length: 3 }).map((_, i) => (
+              <PostSkeleton key={i} />
+            ))}
+
           {/* POSTS */}
-          {posts.map((post) => (
-            <PostComp key={post.id} post={post} />
-          ))}
+          {!loading &&
+            posts.map((post) => (
+              <PostComp key={post.id} post={post} />
+            ))}
         </main>
 
         {/* RIGHT SIDEBAR */}

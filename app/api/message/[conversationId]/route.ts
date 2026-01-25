@@ -18,15 +18,31 @@ export async function GET(
 
   if (!meInDb) return NextResponse.json([]);
 
-  const messages = await prisma.message.findMany({
-    where: { conversationId },
-    orderBy: { createdAt: "asc" },
-  });
+ const messages = await prisma.message.findMany({
+  where: { conversationId },
+  include: {
+    sharedPost: {
+      include: {
+        user: {
+          include: {
+            profile: true,
+          },
+        },
+      },
+    },
+  },
+  orderBy: { createdAt: "asc" },
+});
+
+
 
   return NextResponse.json(
     messages.map(m => ({
+      id: m.id,
       text: m.text,
+      type: m.type,
       isSender: m.senderId === meInDb.id,
+      sharedPost: m.sharedPost,
     }))
   );
 }

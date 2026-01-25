@@ -1,8 +1,8 @@
-
 "use client";
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { socket } from "@/helper/socket";
 
 /* ---------- TYPES ---------- */
 interface Member {
@@ -31,12 +31,76 @@ interface ChatListProps {
 export default function ChatList({ onSelect, activeId }: ChatListProps) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
 
+  /* ---------- FETCH CONVERSATIONS ---------- */
   useEffect(() => {
     fetch("/api/conversation/me")
       .then((res) => res.json())
-      .then(setConversations);
+      .then((data) =>
+        setConversations(
+          data.map((c: Conversation) => ({
+            ...c,
+            unreadCount: c.unreadCount || 0,
+          }))
+        )
+      );
   }, []);
 
+  /* ---------- SOCKET: RECEIVE MESSAGE ---------- */
+  useEffect(() => {
+    const handler = (data: {
+      conversationId: string;
+      text?: string;
+      type: "TEXT" | "POST";
+      senderId?: string;
+      createdAt?: string;
+    }) => {
+      setConversations((prev) => {
+        const updated = prev.map((c) => {
+          if (c.id !== data.conversationId) return c;
+
+          // Active chat → no unread increment
+          if (activeId === c.id) {
+            return {
+              ...c,
+              lastMessage: {
+                text: data.text || "Shared a post",
+                createdAt: data.createdAt || new Date().toISOString(),
+              },
+            };
+          }
+
+          // Inactive chat → increment unread
+          return {
+            ...c,
+            lastMessage: {
+              text: data.text || "Shared a post",
+              createdAt: data.createdAt || new Date().toISOString(),
+            },
+            unreadCount: (c.unreadCount || 0) + 1,
+          };
+        });
+
+        // 🔥 Move updated conversation to top
+        const updatedConv = updated.find(
+          (c) => c.id === data.conversationId
+        );
+        const others = updated.filter(
+          (c) => c.id !== data.conversationId
+        );
+
+        return updatedConv ? [updatedConv, ...others] : updated;
+      });
+    };
+
+    socket.on("receive-message", handler);
+    return () => {
+      socket.off("receive-message", handler);
+    };
+  }, [activeId]);
+
+  /* ---------- RENDER ---------- */
+
+  console.log("conversation from chat " , conversations);
   return (
     <div
       className="
@@ -48,7 +112,7 @@ export default function ChatList({ onSelect, activeId }: ChatListProps) {
       "
     >
       {/* Header */}
-      <div className="p-4  text-lg font-semibold border-b sticky mt-10 bg-white z-10">
+      <div className="p-4 text-lg font-semibold border-b sticky mt-10 bg-white z-10">
         Messaging
       </div>
 
@@ -59,7 +123,16 @@ export default function ChatList({ onSelect, activeId }: ChatListProps) {
         return (
           <div
             key={c.id}
-            onClick={() => onSelect(c)}
+            onClick={() => {
+              onSelect(c);
+              setConversations((prev) =>
+                prev.map((item) =>
+                  item.id === c.id
+                    ? { ...item, unreadCount: 0 }
+                    : item
+                )
+              );
+            }}
             className={`
               flex items-center gap-3 px-4 py-3 cursor-pointer transition
               hover:bg-gray-100
@@ -100,10 +173,10 @@ export default function ChatList({ onSelect, activeId }: ChatListProps) {
               </p>
             </div>
 
-            {/* Unread Count */}
-            {c.unreadCount && c.unreadCount > 0 && (
+            {/* Unread Badge */}
+            {(c.unreadCount ?? 0) > 0 && (
               <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-xs text-white shrink-0">
-                {c.unreadCount}
+                {c.unreadCount ?? 0}
               </span>
             )}
           </div>

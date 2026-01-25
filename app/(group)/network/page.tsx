@@ -75,15 +75,15 @@ export default function NetworkPage() {
 
   /* ---------- SEND REQUEST ---------- */
 
-  const sendRequest = async (userId: string): Promise<void> => {
+  const sendRequest = async (receiverId : string): Promise<void> => {
     await fetch("/api/connection/send", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId }),
+      body: JSON.stringify({ receiverId }),
     });
 
     setSuggestions((prev) =>
-      prev.filter((u) => u.id !== userId)
+      prev.filter((u) => u.id !== receiverId)
     );
   };
 

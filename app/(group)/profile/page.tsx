@@ -11,19 +11,20 @@ import { useEffect, useState } from "react";
 import PostComp from "../component/PostComp";
 import { useUser } from "@clerk/nextjs";
 interface userData {
-  id : string,
-  name : string,
-  profile : {
-    id : string,
-    image : string,
-    coverImg : string,
-    headline : string,
-    bio : string,
-    education : any ,
-    experience : any,
-    location : string
+  id: string,
+  name: string,
+  profile: {
+    id: string,
+    image: string,
+    coverImg: string,
+    headline: string,
+    bio: string,
+    education: any,
+    experience: any,
+    location: string
 
-  }
+  },
+  isPremium: boolean
 }
 
 interface PostItem {
@@ -38,27 +39,46 @@ export default function Home() {
   const [posts, setPosts] = useState<PostItem[] | null>(null);
   const user = useUser();
 
-   useEffect(() => {
-          if (!user?.user?.id) return;
-  
-          const userPost = async () => {
-              try {
-                  const res = await fetch('/api/allpost/' + userData?.id);
-  
-                  if (!res.ok) {
-                      throw new Error("Post not fetched");
-                  }
-  
-                  const data = await res.json();
-                  setPosts(data.data);
-              } catch (error) {
-                  console.error(error);
-                  alert("Post not fetched");
-              }
-          };
-  
-          userPost();
-      }, [userData]);
+   const [views, setViews] = useState<any[]>([]);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    fetch("/api/profile/view")
+      .then(async (res) => {
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text);
+        }
+        return res.json();
+      })
+      .then(setViews)
+      .catch((err) => setError(err.message));
+  }, []);
+  if (error) {
+    return <p className="text-red-500">{error}</p>;
+  }
+
+  useEffect(() => {
+    if (!user?.user?.id) return;
+
+    const userPost = async () => {
+      try {
+        const res = await fetch('/api/allpost/' + userData?.id);
+
+        if (!res.ok) {
+          throw new Error("Post not fetched");
+        }
+
+        const data = await res.json();
+        setPosts(data.data);
+      } catch (error) {
+        console.error(error);
+        alert("Post not fetched");
+      }
+    };
+
+    userPost();
+  }, [userData]);
 
   useEffect(() => {
     const fetchConnect = async () => {
@@ -135,10 +155,34 @@ export default function Home() {
                 <Link href={'/connections'}>
                   <div className="flex items-center gap-2 text-lg text-blue-500 mt-1">connections
                     <div className="text-lg text-black" >
-                      {countConnect.length}
+                      {countConnect?.length}
                     </div>
                   </div>
                 </Link>
+
+                {!userData?.isPremium && (
+                  <Button
+                    onClick={async () => {
+                      const res = await fetch("/api/stripe/create-checkout", {
+                        method: "POST",
+                      });
+
+                      const data = await res.json();
+                      window.location.href = data.url;
+                    }}
+                    className="bg-yellow-400 px-2 hover:bg-yellow-600 rounded"
+                  >
+                    Try Premium
+                  </Button>
+                )}
+
+
+
+                {userData?.isPremium && (
+                  <span className="bg-yellow-400 px-2 py-1 h-9  rounded">
+                    Premium
+                  </span>
+                )}
 
 
                 <div className="flex gap-2">
@@ -183,7 +227,7 @@ export default function Home() {
               <CardContent className="p-5 space-y-4">
                 <h2 className="font-semibold text-base">Experience</h2>
 
-                {userData?.profile.experience.map((exp : any, i : any) => (
+                {userData?.profile.experience.map((exp: any, i: any) => (
                   <div key={i} className="flex gap-4">
                     <Briefcase className="text-gray-500 mt-1" size={20} />
                     <div>
@@ -203,7 +247,7 @@ export default function Home() {
               <CardContent className="p-5 space-y-4">
                 <h2 className="font-semibold text-base">Education</h2>
 
-                {userData?.profile.education.map((edu : any , i : any) => (
+                {userData?.profile.education.map((edu: any, i: any) => (
                   <div key={i} className="flex gap-4">
                     <GraduationCap className="text-gray-500 mt-1" size={20} />
                     <div>
@@ -233,6 +277,12 @@ export default function Home() {
             <CardContent className="p-4 text-sm text-gray-600">
               <p className="font-medium mb-2">LinkedIn Sidebar</p>
               <p>Add connections, ads, or suggestions here.</p>
+            </CardContent>
+          </Card>
+           <Card className="rounded-xl">
+            <CardContent className="p-4 text-sm text-gray-600">
+              <p className="font-medium mb-2">{userData?.isPremium ? "see who viewed your profile" : "some view your profile"}</p>
+              {userData?.isPremium ? <p>{views.length === 1 ? "someone view your profile " : <p>{views.length} people view your profile </p>}<Link href={'/profile/views'}><button className="bg-blue-600 cursor-pointer p-1 rounded text-white ">Views</button></Link></p> : "buy premium to see who viewed your profile"}
             </CardContent>
           </Card>
         </div>

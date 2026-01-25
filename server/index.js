@@ -9,36 +9,38 @@ console.log("🚀 Socket server started on port 3001");
 io.on("connection", (socket) => {
   console.log("✅ User connected:", socket.id);
 
-  // 🔑 Join personal user room
+  /* ---------- JOIN USER ROOM ---------- */
   socket.on("join-user", (userId) => {
     socket.join(userId);
     console.log(`👤 User joined personal room: ${userId}`);
   });
 
-  // 💬 Join conversation room
+  /* ---------- JOIN CONVERSATION ROOM ---------- */
   socket.on("join-conversation", (conversationId) => {
     socket.join(conversationId);
     console.log(`💬 Joined conversation: ${conversationId}`);
   });
 
-  // 📩 Send message
-  socket.on("send-message", ({ conversationId, senderId, receiverId, text }) => {
-    console.log("📨 Message:", text);
+  /* ---------- SEND MESSAGE ---------- */
+  socket.on(
+    "send-message",
+    ({ conversationId, senderId, receiverId, text }) => {
+      const payload = {
+        conversationId,
+        text,
+        senderId,
+        createdAt: new Date().toISOString(), // 🔥 IMPORTANT
+      };
 
-    // 1️⃣ Send message to open chat
-    socket.to(conversationId).emit("receive-message", {
-      conversationId,
-      text,
-      senderId,
-    });
+      console.log("📨 Message:", payload);
 
-    // 2️⃣ Send notification to receiver (if chat not open)
-    socket.to(receiverId).emit("new-notification", {
-      conversationId,
-      text,
-      senderId,
-    });
-  });
+      // 1️⃣ Send to OPEN conversation (ChatWindow)
+      socket.to(conversationId).emit("receive-message", payload);
+
+      // 2️⃣ Send notification to receiver (ChatList unread)
+      socket.to(receiverId).emit("new-notification", payload);
+    }
+  );
 
   socket.on("disconnect", () => {
     console.log("❌ User disconnected:", socket.id);

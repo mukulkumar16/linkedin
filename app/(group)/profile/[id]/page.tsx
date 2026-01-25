@@ -69,6 +69,20 @@ export default function Home({
     const [post, setPost] = useState<Post[] | null>(null);
     const [suggestUser, setSuggestUser] = useState<UserData[] | null>(null);
 
+
+
+    const profileUserId = id;
+
+    console.log("profileuserid from profiel view" , profileUserId);
+
+    useEffect(() => {
+        fetch("/api/profile/view/view-record", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ profileUserId }),
+        });
+    }, [profileUserId]);
+
     /* ================= LOGGED IN USER ================= */
 
     useEffect(() => {
