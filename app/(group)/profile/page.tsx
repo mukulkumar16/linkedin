@@ -10,6 +10,7 @@ import EditProfileModal from "../component/EditProfile";
 import { useEffect, useState } from "react";
 import PostComp from "../component/PostComp";
 import { useUser } from "@clerk/nextjs";
+import Footer from "../component/Footer";
 interface userData {
   id: string,
   name: string,
@@ -272,21 +273,101 @@ export default function Home() {
         </div>
 
         {/* RIGHT SIDEBAR (Optional / Future) */}
-        <div className="hidden lg:block lg:col-span-4 space-y-4">
-          <Card className="rounded-xl">
-            <CardContent className="p-4 text-sm text-gray-600">
-              <p className="font-medium mb-2">LinkedIn Sidebar</p>
-              <p>Add connections, ads, or suggestions here.</p>
-            </CardContent>
-          </Card>
-           <Card className="rounded-xl">
-            <CardContent className="p-4 text-sm text-gray-600">
-              <p className="font-medium mb-2">{userData?.isPremium ? "see who viewed your profile" : "some view your profile"}</p>
-              {userData?.isPremium ? <p>{views.length === 1 ? "someone view your profile " : <p>{views.length} people view your profile </p>}<Link href={'/profile/views'}><button className="bg-blue-600 cursor-pointer p-1 rounded text-white ">Views</button></Link></p> : "buy premium to see who viewed your profile"}
-            </CardContent>
-          </Card>
-        </div>
+        {/* RIGHT SIDEBAR */}
+<div className="hidden lg:block lg:col-span-4 space-y-4">
+
+  {/* PROFILE VIEWS CARD */}
+  <Card className="rounded-xl">
+    <CardContent className="p-4">
+      <div className="flex items-center justify-between mb-1">
+        <p className="font-semibold text-sm">
+          Who viewed your profile
+        </p>
+        {userData?.isPremium && (
+          <span className="text-xs text-gray-500">
+            Last 7 days
+          </span>
+        )}
       </div>
+
+      {userData?.isPremium ? (
+        <>
+          <p className="text-2xl font-semibold text-blue-600">
+            {views.length}
+          </p>
+          <p className="text-xs text-gray-500 mb-3">
+            profile views
+          </p>
+
+          <Link href="/profile/views">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full text-blue-600 border-blue-600 hover:bg-blue-50"
+            >
+              See all views
+            </Button>
+          </Link>
+        </>
+      ) : (
+        <>
+          <p className="text-sm text-gray-600 mb-3">
+            Get noticed by seeing who viewed your profile.
+          </p>
+
+          <Button
+            className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-medium"
+            onClick={async () => {
+              const res = await fetch("/api/stripe/create-checkout", {
+                method: "POST",
+              });
+              const data = await res.json();
+              window.location.href = data.url;
+            }}
+          >
+            Try Premium
+          </Button>
+        </>
+      )}
+    </CardContent>
+  </Card>
+
+  {/* CONNECTIONS CARD */}
+  <Card className="rounded-xl">
+    <CardContent className="p-4">
+      <Link href="/connections">
+        <div className="flex items-center justify-between cursor-pointer">
+          <div>
+            <p className="font-semibold text-sm">
+              Connections
+            </p>
+            <p className="text-xs text-gray-500">
+              Grow your network
+            </p>
+          </div>
+          <span className="text-blue-600 font-semibold">
+            {countConnect?.length}
+          </span>
+        </div>
+      </Link>
+    </CardContent>
+  </Card>
+
+  {/* FOOTER / INFO */}
+  <Card className="rounded-xl">
+    <CardContent className="p-4 text-xs text-gray-500 leading-relaxed">
+      <p className="font-medium text-sm mb-2">LinkedIn Clone</p>
+      <p>
+        Build your professional identity, connect with others,
+        and showcase your work.
+      </p>
+    </CardContent>
+  </Card>
+
+</div>
+
+      </div>
+      <Footer/>
     </div>
   );
 }
