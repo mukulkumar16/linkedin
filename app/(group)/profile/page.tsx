@@ -55,10 +55,7 @@ export default function Home() {
       .then(setViews)
       .catch((err) => setError(err.message));
   }, []);
-  if (error) {
-    return <p className="text-red-500">{error}</p>;
-  }
-
+ 
   useEffect(() => {
     if (!user?.user?.id) return;
 
