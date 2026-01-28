@@ -36,7 +36,7 @@ export default function MessagesPage() {
       {/* Chat List */}
       <div
         className={`
-          w-full md:w-[320px] border-r bg-white
+          w-full md:w-[320px] border-r bg-white 
           ${selectedConversation ? "hidden md:block" : "block"}
         `}
       >

@@ -106,13 +106,13 @@ export default function ChatList({ onSelect, activeId }: ChatListProps) {
       className="
         h-full bg-white border-r overflow-y-auto
         w-full sm:w-80
-        fixed sm:static
+        
         left-0 top-0
         z-40
       "
     >
       {/* Header */}
-      <div className="p-4 text-lg font-semibold border-b sticky mt-10 bg-white z-10">
+      <div className="p-4 text-lg font-semibold border-b  bg-white z-10">
         Messaging
       </div>
 
