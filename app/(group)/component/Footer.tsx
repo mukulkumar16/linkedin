@@ -10,7 +10,7 @@ export default function Footer() {
         <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
           {/* Left */}
           <div className="flex items-center gap-2 font-semibold text-gray-800">
-            <span className="text-blue-600">Linked</span>
+            <span className="text-blue-600">ConnectIn</span>
             <span>App</span>
             <span className="text-gray-500 font-normal">
               © {new Date().getFullYear()}

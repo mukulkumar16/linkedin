@@ -6,7 +6,7 @@ export default function RightSidebar() {
       
       {/* LinkedIn News */}
       <div className="bg-white border  rounded-xl p-4">
-        <h3 className="font-semibold text-sm mb-3">LinkedIn News</h3>
+        <h3 className="font-semibold text-sm mb-3">ConnectIn News</h3>
 
         <ul className="space-y-3 text-sm">
           <li>
@@ -60,14 +60,7 @@ export default function RightSidebar() {
         </div>
       </div>
 
-      {/* Mini Footer */}
-      <div className="text-xs text-gray-500 flex flex-wrap gap-x-3 gap-y-1 px-2">
-        <span className="hover:underline cursor-pointer">About</span>
-        <span className="hover:underline cursor-pointer">Accessibility</span>
-        <span className="hover:underline cursor-pointer">Help Center</span>
-        <span className="hover:underline cursor-pointer">Privacy</span>
-        <span className="hover:underline cursor-pointer">Terms</span>
-      </div>
+      
     </aside>
   );
 }

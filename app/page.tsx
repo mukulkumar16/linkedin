@@ -10,7 +10,7 @@ export default function Home() {
       {/* HEADER */}
       <header className="w-full bg-[#f9f9f9]">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 py-4">
-          
+
           {/* Logo */}
           <Link href="/">
             <div className="flex items-center gap-2">
@@ -21,7 +21,7 @@ export default function Home() {
                 height={45}
               />
               <h1 className="text-xl sm:text-2xl font-bold text-[#0A66C2]">
-                Linkedin
+                ConnectIn
               </h1>
             </div>
           </Link>
@@ -71,7 +71,7 @@ export default function Home() {
 
           {/* Terms */}
           <p className="mb-4 w-full sm:w-100 text-xs text-gray-600">
-            By clicking Continue to join or sign in, you agree to LinkedIn’s{" "}
+            By clicking Continue to join or sign in, you agree to ConnectIn’s{" "}
             <span className="text-[#0A66C2] hover:underline cursor-pointer">
               User Agreement
             </span>
@@ -88,7 +88,7 @@ export default function Home() {
 
           {/* Footer Text */}
           <p className="text-sm">
-            New to LinkedIn?{" "}
+            New to ConnectIn?{" "}
             <span className="cursor-pointer font-semibold text-[#0A66C2] hover:underline">
               Join now
             </span>
@@ -98,7 +98,7 @@ export default function Home() {
         {/* RIGHT SECTION */}
         <div className="hidden md:flex justify-center">
           <Image
-            src="https://hashimedia.com/wengense/2020/10/Linkedin-company-page.png"
+            src="https://healthcaremarketingtips.in/wp-content/uploads/2021/08/linkedin-for-doc2.jpg"
             alt="LinkedIn Hero"
             width={550}
             height={450}
@@ -106,7 +106,13 @@ export default function Home() {
             priority
           />
         </div>
+
       </main>
+      <p className="mt-8 text-center text-xs text-gray-500 px-4">
+        Disclaimer: This website is an independent educational and portfolio project
+        and is not affiliated with or endorsed by LinkedIn. All trademarks belong to
+        their respective owners.
+      </p>
     </div>
   );
 }
